@@ -26,6 +26,7 @@ const I = {
   move: sv('<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h3.4l2 2h7.6A2.5 2.5 0 0 1 21 9.5v8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/><path d="M9 14h6M12.5 11.5L15 14l-2.5 2.5"/>', 28, 1.6),
   minus: '<svg width="14" height="14" viewBox="0 0 24 24"><path d="M5 12h14" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/></svg>',
   restore: sv('<path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/>', 28, 1.7),
+  undo: sv('<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>', 26, 2.2),
   pencil: sv('<path d="M15.5 4.5l4 4L8 20H4v-4z"/>', 28, 1.6)
 };
 
@@ -103,7 +104,7 @@ let query = '';
 let folderEdit = false;
 let selMode = false;
 let selected = new Set();
-let ed = null, edNote = null, saveT = null, savedRange = null, newCk = false;
+let ed = null, edNote = null, saveT = null, savedRange = null, newCk = false, newLine = false;
 
 const cur = () => stack[stack.length - 1];
 function go(r, hl) { cur().hl = hl; const sc = view && view.querySelector('.scroll'); cur().scroll = sc ? sc.scrollTop : 0; leaveEditor(); stack.push(r); query = ''; selMode = false; selected.clear(); render(1); }
@@ -304,16 +305,20 @@ function vSettings() {
 /* ---------- editor ---------- */
 function vEditor(id) {
   const n = db.notes.find(x => x.id === id);
-  return `<div class="hdr"><button class="cb" data-a="back">${I.back}</button>
-    <div class="r"><div class="pillb"><button data-a="share">${I.share}</button><button data-a="noteMenu">${I.more}</button></div>
+  return `<div class="hdr edhdr"><button class="cb" data-a="back">${I.back}</button>
+    <div class="r"><button class="cb" id="undoBtn" data-a="undo" style="display:none">${I.undo}</button><div class="pillb"><button data-a="share">${I.share}</button><button data-a="noteMenu">${I.more}</button></div>
     <button class="ok" id="okBtn" data-a="doneEdit" style="display:none">${I.check}</button></div></div>
     <div class="edwrap" id="edwrap">
-    <div id="ed" contenteditable="true" spellcheck="true">${n.html || '<div><br></div>'}</div></div>
+    <div id="ed" contenteditable="true" spellcheck="true">${n.html || '<div class="h1"><br></div>'}</div></div>
     <div class="bottom" id="viewBar"><div class="tools"><button data-a="tChecklist">${I.checklist}</button><button data-a="tAttach">${I.clip}</button></div>
       <span class="spacer"></span><button class="compose" data-a="newNote">${I.compose}</button></div>
-    <div class="fbar" id="fbar" style="display:none">
-      <button data-a="tFormat">Aa</button><button data-a="tChecklist">${I.checklist}</button><button data-a="tTable">${I.table}</button>
-      <button data-a="tAttach">${I.clip}</button><button data-a="tList">${I.list}</button></div>`;
+    <div class="fbox" id="fbar" style="display:none">
+      <div class="fpanel" id="fpanel"><div class="fpin">
+        <div class="seg">${[['h1', 'Titre'], ['h2', 'Sous-titre'], ['h3', 'Titre secondaire'], ['', 'Corps']].map(([k, l]) => `<button class="sg sg-${k || 'body'}" data-a="seg" data-id="${k}">${l}</button>`).join('')}</div>
+        <div class="seg seg2"><button data-a="inl" data-id="bold"><b>B</b></button><button data-a="inl" data-id="italic"><i>I</i></button><button data-a="inl" data-id="underline"><u>U</u></button><button data-a="inl" data-id="strikeThrough"><s>S</s></button><button data-a="seg" data-id="mono" style="font-family:monospace;font-size:17px">Mono</button></div>
+      </div></div>
+      <div class="frow"><button class="aa" id="aaBtn" data-a="tFormat">Aa</button><button id="ckBtn" data-a="tChecklist">${I.checklist}</button><button id="tbBtn" data-a="tTable">${I.table}</button>
+      <button data-a="tAttach">${I.clip}</button><button data-a="tList">${I.list}</button></div></div>`;
 }
 
 function setupEditor(focus, animated) {
@@ -331,7 +336,7 @@ function setupEditor(focus, animated) {
   });
   document.addEventListener('selectionchange', keepRange);
   ['#fbar', '#viewBar'].forEach(i => $v(i).addEventListener('mousedown', e => e.preventDefault()));
-  $v('#okBtn').addEventListener('mousedown', e => e.preventDefault());
+  ['#okBtn', '#undoBtn'].forEach(i => $v(i).addEventListener('mousedown', e => e.preventDefault()));
   if (focus) {
     const e0 = ed;
     setTimeout(() => { if (ed !== e0) return; ed.focus({ preventScroll: true }); caretEnd(ed.lastElementChild || ed); }, animated ? 650 : 0);
@@ -340,7 +345,27 @@ function setupEditor(focus, animated) {
 function keepRange() {
   if (!ed) return;
   const s = getSelection();
-  if (s.rangeCount && ed.contains(s.anchorNode)) savedRange = s.getRangeAt(0).cloneRange();
+  if (s.rangeCount && ed.contains(s.anchorNode)) { savedRange = s.getRangeAt(0).cloneRange(); syncBar(); }
+}
+function blockOf(n) {
+  if (!ed || !n || !ed.contains(n) || n === ed) return null;
+  while (n && n.parentNode !== ed) n = n.parentNode;
+  return n && n.nodeType === 1 ? n : null;
+}
+function cellOf() {
+  const s = getSelection(); if (!s.rangeCount) return null;
+  let n = s.anchorNode; if (n && n.nodeType === 3) n = n.parentNode;
+  const td = n && n.closest && n.closest('td');
+  return td && ed && ed.contains(td) ? td : null;
+}
+function syncBar() {
+  const b = blockOf(getSelection().anchorNode), k = b ? (['h1', 'h2', 'h3', 'mono'].find(c => b.classList.contains(c)) || '') : '';
+  $v('.seg') && view.querySelectorAll('.fpanel [data-a="seg"]').forEach(x => x.classList.toggle('on', x.dataset.id === k));
+  ['bold', 'italic', 'underline', 'strikeThrough'].forEach(c => { const x = view.querySelector(`[data-a="inl"][data-id="${c}"]`); if (x) x.classList.toggle('on', document.queryCommandState(c)); });
+  const intable = !!cellOf();
+  const tb = $v('#tbBtn'), ck = $v('#ckBtn');
+  if (tb) tb.classList.toggle('intable', intable);
+  if (ck) ck.classList.toggle('off', intable);
 }
 function restoreRange() {
   if (!ed) return;
@@ -357,6 +382,8 @@ function editing(on) {
   const ok = $v('#okBtn'), fb = $v('#fbar'), vb = $v('#viewBar');
   if (!ok) return;
   ok.style.display = on ? '' : 'none';
+  $v('#undoBtn').style.display = on ? '' : 'none';
+  if (!on) fb.classList.remove('open');
   fb.style.display = on ? '' : 'none';
   vb.style.display = on ? 'none' : '';
 }
@@ -382,6 +409,10 @@ function normalize() {
     const b = curBlock(); if (b && b.classList.contains('ck')) b.classList.remove('on');
     newCk = false;
   }
+  if (newLine) {
+    const b = curBlock(); if (b && b.classList) b.classList.remove('h1', 'h2', 'h3');
+    newLine = false; syncBar();
+  }
 }
 function curBlock() {
   const s = getSelection();
@@ -401,6 +432,7 @@ function textBeforeCaret(block) {
 }
 function onKey(e) {
   const b = curBlock();
+  if (e.key === 'Enter' && b && b.classList && /\bh[123]\b/.test(b.className)) newLine = true;
   if (!b || !b.classList || !b.classList.contains('ck')) return;
   if (e.key === 'Enter') {
     if (b.textContent.trim() === '') { e.preventDefault(); uncheck(b); }
@@ -452,14 +484,16 @@ function setBlock(cls) {
   const b = curBlock(); if (!b || b === ed) return;
   b.classList.remove('h1', 'h2', 'h3', 'mono');
   if (cls) b.classList.add(cls);
-  schedule();
+  schedule(); syncBar();
 }
-function inline(cmd) { restoreRange(); document.execCommand(cmd); schedule(); }
+function inline(cmd) { restoreRange(); document.execCommand(cmd); schedule(); syncBar(); }
 function insertTable() {
   restoreRange();
-  const row = '<tr><td><br></td><td><br></td><td><br></td></tr>';
-  document.execCommand('insertHTML', false, `<table><tbody>${row}${row}${row}</tbody></table><div><br></div>`);
-  schedule();
+  const row = '<tr><td><br></td><td><br></td></tr>';
+  document.execCommand('insertHTML', false, `<table data-new="1"><tbody>${row}${row}</tbody></table><div><br></div>`);
+  const t = ed.querySelector('table[data-new]');
+  if (t) { t.removeAttribute('data-new'); caretEnd(t.querySelector('td')); }
+  schedule(); syncBar();
 }
 function attach() {
   keepRange();
@@ -677,7 +711,7 @@ function newNote() {
   if (r.v === 'list' && r.id !== 'trash') fid = r.id;
   if (r.v === 'editor' && edNote) fid = edNote.folderId;
   const now = Date.now();
-  const n = { id: uid(), folderId: fid, html: '<div><br></div>', text: '', created: now, modified: now, deleted: null };
+  const n = { id: uid(), folderId: fid, html: '<div class="h1"><br></div>', text: '', created: now, modified: now, deleted: null };
   db.notes.push(n);
   if (r.v === 'editor') { leaveEditor(); stack[stack.length - 1] = { v: 'editor', id: n.id, focus: true }; render(1); }
   else go({ v: 'editor', id: n.id, focus: true });
@@ -825,20 +859,26 @@ const A = {
   },
   tChecklist: toggleChecklist,
   tAttach: attach,
-  tTable: insertTable,
-  tList: () => inline('insertUnorderedList'),
-  async tFormat() {
+  async tTable(_, el) {
+    const td = cellOf();
+    if (!td) return insertTable();
     keepRange();
-    const opts = [
-      ['Titre', () => setBlock('h1')], ['En-tête', () => setBlock('h2')], ['Sous-titre', () => setBlock('h3')],
-      ['Corps', () => setBlock('')], ['Monospace', () => setBlock('mono')],
-      ['Gras', () => inline('bold')], ['Italique', () => inline('italic')], ['Souligné', () => inline('underline')], ['Barré', () => inline('strikeThrough')]
-    ];
-    const i = await sheet(null, opts.map(o => ({ label: o[0] })));
-    if (i !== null) opts[i][1]();
-  }
+    const tr = td.parentElement, tbl = td.closest('table'), ci = td.cellIndex;
+    const i = await menu(el, [{ label: 'Ajouter une ligne' }, { label: 'Ajouter une colonne' }, { label: 'Supprimer la ligne', red: true }, { label: 'Supprimer la colonne', red: true }, { label: 'Supprimer le tableau', red: true }]);
+    if (i === null) return;
+    if (i === 0) { const n = tr.cloneNode(true); n.querySelectorAll('td').forEach(c => c.innerHTML = '<br>'); tr.after(n); caretEnd(n.cells[ci]); }
+    if (i === 1) { tbl.querySelectorAll('tr').forEach(r => { const c = document.createElement('td'); c.innerHTML = '<br>'; r.cells[ci].after(c); }); caretEnd(tr.cells[ci + 1]); }
+    if (i === 2) { const nx = tr.nextElementSibling || tr.previousElementSibling; tr.remove(); if (nx) caretEnd(nx.cells[Math.min(ci, nx.cells.length - 1)]); else { const d = document.createElement('div'); d.innerHTML = '<br>'; tbl.replaceWith(d); caretEnd(d); } }
+    if (i === 3) { tbl.querySelectorAll('tr').forEach(r => r.cells[ci] && r.cells[ci].remove()); if (!tbl.querySelector('td')) { const d = document.createElement('div'); d.innerHTML = '<br>'; tbl.replaceWith(d); caretEnd(d); } else caretEnd(tbl.querySelector('td')); }
+    if (i === 4) { const d = document.createElement('div'); d.innerHTML = '<br>'; tbl.replaceWith(d); caretEnd(d); }
+    schedule(); syncBar();
+  },
+  seg: k => setBlock(k),
+  inl: k => inline(k),
+  undo() { if (ed) { ed.focus(); document.execCommand('undo'); schedule(); } },
+  tList: () => inline('insertUnorderedList'),
+  tFormat() { keepRange(); $v('#fbar').classList.toggle('open'); syncBar(); }
 };
-
 app.addEventListener('click', e => {
   if (Date.now() < noClickUntil) { e.stopPropagation(); return; }
   const el = e.target.closest('[data-a]');
