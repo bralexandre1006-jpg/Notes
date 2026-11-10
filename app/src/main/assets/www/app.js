@@ -717,11 +717,11 @@ let menuAnchor = null;
 function closeOverlay(v, instant) {
   const t = ++ovTok;
   const a = menuAnchor; menuAnchor = null;
-  if (a) setTimeout(() => { if (a !== menuAnchor) a.style.visibility = ''; }, instant ? 0 : 280);
+  if (a) setTimeout(() => { if (a !== menuAnchor) a.style.visibility = ''; }, instant ? 0 : 170);
   if (instant) { ov.classList.remove('show', 'closing'); ov.innerHTML = ''; }
   else {
     ov.classList.add('closing');
-    setTimeout(() => { if (t === ovTok) { ov.classList.remove('show', 'closing'); ov.innerHTML = ''; } }, 300);
+    setTimeout(() => { if (t === ovTok) { ov.classList.remove('show', 'closing'); ov.innerHTML = ''; } }, 210);
   }
   const d = ovDone; ovDone = null; if (d) d(v === undefined ? null : v);
 }

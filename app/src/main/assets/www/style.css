@@ -276,14 +276,14 @@ h2{font-size:23px;font-weight:700;margin:30px 0 14px}
 .pillb button.pr{transform:scale(1.2);opacity:.6}
 
 /* ===== menu morph ===== */
-.menu.morph{animation:morphIn .55s var(--bounce) both;will-change:transform}
-@keyframes morphIn{0%{transform:scale(var(--sx),var(--sy));border-radius:60px;background:rgba(70,70,74,.95)}55%{border-radius:30px}100%{transform:none}}
-.menu.morph .mi{animation:miIn .38s ease-out .1s both}
-@keyframes miIn{from{opacity:0;filter:blur(8px);transform:scale(.9)}to{opacity:1;filter:none;transform:none}}
-#overlay.closing .menu.morph{animation:morphOut .3s cubic-bezier(.4,0,.2,1) both}
-@keyframes morphOut{to{transform:scale(var(--sx),var(--sy));border-radius:60px;opacity:.4}}
-#overlay.closing .menu.morph .mi{animation:miOut .14s ease-in both}
-@keyframes miOut{to{opacity:0;filter:blur(8px)}}
+.menu.morph{animation:morphIn .34s cubic-bezier(.2,1.25,.35,1) both;will-change:transform,opacity}
+@keyframes morphIn{0%{transform:scale(var(--sx),var(--sy));opacity:.5}100%{transform:none;opacity:1}}
+.menu.morph .mi{animation:miIn .2s ease-out .04s both}
+@keyframes miIn{from{opacity:0}to{opacity:1}}
+#overlay.closing .menu.morph{animation:morphOut .2s cubic-bezier(.4,0,.6,1) both}
+@keyframes morphOut{to{transform:scale(var(--sx),var(--sy));opacity:0}}
+#overlay.closing .menu.morph .mi{animation:miOut .1s ease-in both}
+@keyframes miOut{to{opacity:0}}
 
 /* ===== search mode ===== */
 .view>.hdr{transition:margin-top .5s var(--spring),opacity .25s}
@@ -316,8 +316,8 @@ h2{font-size:23px;font-weight:700;margin:30px 0 14px}
 .mrow{display:flex;padding:6px 8px 2px}
 .mrb{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 0;border-radius:18px;font-size:16px;white-space:nowrap}
 .mrb.pr{background:rgba(255,255,255,.12)}
-.menu.morph .mrb{animation:miIn .38s ease-out .1s both}
-#overlay.closing .menu.morph .mrb{animation:miOut .14s ease-in both}
+.menu.morph .mrb{animation:miIn .2s ease-out .04s both}
+#overlay.closing .menu.morph .mrb{animation:miOut .1s ease-in both}
 .cxmenu{width:auto;min-width:240px}
 .sheet .ttl,.dlg .dm{white-space:pre-line}
 
