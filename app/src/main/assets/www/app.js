@@ -106,8 +106,8 @@ let selected = new Set();
 let ed = null, edNote = null, saveT = null, savedRange = null, newCk = false;
 
 const cur = () => stack[stack.length - 1];
-function go(r) { leaveEditor(); stack.push(r); query = ''; selMode = false; selected.clear(); render(true); }
-function pop() { leaveEditor(); if (stack.length > 1) stack.pop(); query = ''; selMode = false; selected.clear(); render(true); }
+function go(r) { const sc = view && view.querySelector('.scroll'); cur().scroll = sc ? sc.scrollTop : 0; leaveEditor(); stack.push(r); query = ''; selMode = false; selected.clear(); render(1); }
+function pop() { leaveEditor(); if (stack.length > 1) stack.pop(); query = ''; selMode = false; selected.clear(); render(-1); }
 
 window.onBack = function () {
   if (ov.classList.contains('show')) { closeOverlay(); return true; }
@@ -121,19 +121,37 @@ window.flushSave = () => { if (edNote) saveNote(); };
 document.addEventListener('visibilitychange', () => { if (document.hidden) window.flushSave(); });
 
 /* ================= render ================= */
-function render(anim) {
+let view = null;
+const $v = q => view && view.querySelector(q);
+function viewHTML(r) {
+  if (r.v === 'folders') return vFolders();
+  if (r.v === 'list') return vList(r.id);
+  if (r.v === 'editor') return vEditor(r.id);
+  return vSettings();
+}
+function render(dir) {
   const r = cur();
-  const oldScroll = app.querySelector('.scroll');
-  const keep = !anim && oldScroll ? oldScroll.scrollTop : 0;
-  if (r.v === 'folders') app.innerHTML = vFolders();
-  else if (r.v === 'list') app.innerHTML = vList(r.id);
-  else if (r.v === 'editor') app.innerHTML = vEditor(r.id);
-  else if (r.v === 'settings') app.innerHTML = vSettings();
-  const sc = app.querySelector('.scroll');
-  if (sc && keep) sc.scrollTop = keep;
-  if (anim) { app.classList.remove('fade'); void app.offsetWidth; app.classList.add('fade'); }
+  const nv = document.createElement('div');
+  nv.className = 'view';
+  nv.innerHTML = viewHTML(r);
+  const old = view;
+  view = nv;
+  if (!dir || !old) {
+    const osc = old && old.querySelector('.scroll'), keep = osc ? osc.scrollTop : 0;
+    if (old) old.remove();
+    app.appendChild(nv);
+    const sc = nv.querySelector('.scroll'); if (sc && keep) sc.scrollTop = keep;
+  } else {
+    old.style.pointerEvents = 'none';
+    if (dir > 0) { app.appendChild(nv); nv.classList.add('in-r'); old.classList.add('out-l'); }
+    else {
+      app.insertBefore(nv, old); nv.classList.add('in-l'); old.classList.add('out-r');
+      const sc = nv.querySelector('.scroll'); if (sc && r.scroll) sc.scrollTop = r.scroll;
+    }
+    setTimeout(() => { old.remove(); nv.classList.remove('in-r', 'in-l'); }, 420);
+  }
   bindSearch();
-  if (r.v === 'editor') setupEditor(r.focus);
+  if (r.v === 'editor') setupEditor(r.focus, dir > 0);
 }
 
 function bottomSearch(compose = true) {
@@ -143,11 +161,11 @@ function bottomSearch(compose = true) {
   </div>`;
 }
 function bindSearch() {
-  const q = document.getElementById('q');
+  const q = $v('#q');
   if (!q) return;
   q.addEventListener('input', () => {
     query = q.value;
-    const c = document.getElementById('content');
+    const c = $v('#content');
     if (c) c.innerHTML = cur().v === 'folders' ? foldersContent() : listContent(cur().id);
     const s = q.parentElement, x = s.querySelector('.x');
     if (query && !x) s.insertAdjacentHTML('beforeend', `<button class="x" data-a="clearQ">${I.xc}</button>`);
@@ -190,10 +208,10 @@ function notesBlock(arr, trashMode) {
 /* ---------- folders view ---------- */
 function vFolders() {
   return `<div class="hdr"><span></span><div class="r">
-      ${folderEdit ? '' : `<button class="cb" data-a="newFolder">${I.folderPlus}</button>`}
-      <button class="pill" data-a="toggleFolderEdit">${folderEdit ? 'OK' : 'Modifier'}</button></div></div>
+      <button class="cb" data-a="newFolder">${I.folderPlus}</button>
+      ${folderEdit ? `<button class="ok" data-a="toggleFolderEdit">${I.check}</button>` : `<button class="pill" data-a="toggleFolderEdit">Modifier</button>`}</div></div>
     <div class="scroll" id="content">${foldersContent()}</div>
-    ${folderEdit ? '' : bottomSearch()}`;
+    ${bottomSearch()}`;
 }
 function foldersContent() {
   if (query) {
@@ -203,16 +221,17 @@ function foldersContent() {
   const col = db.ui.collapsed;
   const rows = db.folders.map(f => {
     const del = folderEdit && f.id !== 'notes';
-    return `<div class="row" data-a="${del ? 'renameFolder' : 'openFolder'}" data-id="${f.id}">
+    const dim = folderEdit && !del ? ' dimrow' : '';
+    return `<div class="row${dim}" ${dim ? '' : `data-a="${del ? 'renameFolder' : 'openFolder'}"`} data-id="${f.id}">
       ${del ? `<button class="minus" data-a="delFolder" data-id="${f.id}">${I.minus}</button>` : ''}
-      <span class="ic">${I.folder}</span><span class="lbl">${esc(f.name)}</span>
-      ${folderEdit ? (del ? `<span class="cnt" style="color:var(--gold)">${I.pencil}</span>` : '') : `<span class="cnt">${inFolder(f.id).length}</span><span class="cnt">${I.chevR}</span>`}
+      <span class="ic" style="color:${f.color || 'var(--gold)'}">${fIcon(f.icon, 30)}</span><span class="lbl">${esc(f.name)}</span>
+      <span class="cnt">${inFolder(f.id).length}</span><span class="cnt">${I.chevR}</span>
     </div>`;
   }).join('');
   return `<h1>Dossiers</h1>
     <div class="sechdr ${col ? 'col' : ''}" data-a="toggleCollapse"><h2>Tous les dossiers</h2><span style="color:var(--sub)">${I.chevD}</span></div>
     ${col ? '' : `<div class="group">${rows}</div>`}
-    <div class="group">
+    <div class="group${folderEdit ? ' dimg' : ''}">
       <div class="row" data-a="openTrash"><span class="ic">${I.trash}</span><span class="lbl">Récemment supprimées</span><span class="cnt">${trash().length}</span><span class="cnt">${I.chevR}</span></div>
       <div class="row" data-a="openSettings"><span class="ic">${I.gear}</span><span class="lbl">Paramètres</span><span class="cnt">${I.chevR}</span></div>
     </div>`;
@@ -221,7 +240,7 @@ function foldersContent() {
 /* ---------- list view ---------- */
 function vList(id) {
   const isTrash = id === 'trash';
-  const right = selMode ? `<button class="pill gold" data-a="endSel">OK</button>` : `<button class="cb" data-a="listMenu">${I.more}</button>`;
+  const right = selMode ? `<button class="ok" data-a="endSel">${I.check}</button>` : `<button class="cb" data-a="listMenu">${I.more}</button>`;
   let bottom;
   if (selMode) {
     const dis = selected.size ? '' : 'dis';
@@ -275,8 +294,8 @@ function vEditor(id) {
       <button data-a="tAttach">${I.clip}</button><button data-a="tList">${I.list}</button></div>`;
 }
 
-function setupEditor(focus) {
-  ed = document.getElementById('ed');
+function setupEditor(focus, animated) {
+  ed = $v('#ed');
   edNote = db.notes.find(x => x.id === cur().id);
   document.execCommand('defaultParagraphSeparator', false, 'div');
   normalize();
@@ -289,11 +308,11 @@ function setupEditor(focus) {
     if (e.target.classList.contains('box')) { e.target.parentElement.classList.toggle('on'); schedule(); }
   });
   document.addEventListener('selectionchange', keepRange);
-  ['fbar', 'viewBar'].forEach(i => document.getElementById(i).addEventListener('mousedown', e => e.preventDefault()));
-  document.getElementById('okBtn').addEventListener('mousedown', e => e.preventDefault());
+  ['#fbar', '#viewBar'].forEach(i => $v(i).addEventListener('mousedown', e => e.preventDefault()));
+  $v('#okBtn').addEventListener('mousedown', e => e.preventDefault());
   if (focus) {
-    ed.focus();
-    caretEnd(ed.lastElementChild || ed);
+    const e0 = ed;
+    setTimeout(() => { if (ed !== e0) return; ed.focus({ preventScroll: true }); caretEnd(ed.lastElementChild || ed); }, animated ? 380 : 0);
   }
 }
 function keepRange() {
@@ -313,7 +332,7 @@ function caretEnd(el) {
   const s = getSelection(); s.removeAllRanges(); s.addRange(r);
 }
 function editing(on) {
-  const ok = document.getElementById('okBtn'), fb = document.getElementById('fbar'), vb = document.getElementById('viewBar');
+  const ok = $v('#okBtn'), fb = $v('#fbar'), vb = $v('#viewBar');
   if (!ok) return;
   ok.style.display = on ? '' : 'none';
   fb.style.display = on ? '' : 'none';
@@ -496,6 +515,96 @@ function dialog({ title, msg, input, ok = 'OK', red, noCancel }) {
   });
 }
 
+/* ================= folder sheet ================= */
+const FICONS = {
+  folder: '<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h3.4l2 2h7.6A2.5 2.5 0 0 1 21 9.5v8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/><path d="M3 10.5h18"/>',
+  star: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
+  heart: '<path d="M12 20s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.4 4.2 4.2 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>',
+  work: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5h6v2M3 12.5h18"/>',
+  home: '<path d="M4 11l8-7 8 7v9h-5.5v-6h-5v6H4z"/>',
+  car: '<path d="M4 16v-4l2.2-5h11.6l2.2 5v4z"/><path d="M4 12h16"/><circle cx="7.5" cy="16.5" r="1.6"/><circle cx="16.5" cy="16.5" r="1.6"/>',
+  book: '<path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3"/>',
+  cart: '<circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M3 4h2.5l2.2 11h10.6l2-8H6.5"/>',
+  music: '<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
+  gift: '<rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8C11 5 7 4 7 6.5S12 8 12 8zm0 0c1-3 5-4 5-1.5S12 8 12 8z"/>',
+  bolt: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>',
+  idea: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>'
+};
+const FCOLORS = ['#e3b341', '#ff453a', '#ff9f0a', '#30d158', '#64d2ff', '#0a84ff', '#bf5af2', '#ff375f', '#8e8e93'];
+const fIcon = (k, size) => sv(FICONS[k] || FICONS.folder, size, 1.6);
+
+function folderSheet(f) {
+  return new Promise(res => {
+    let name = f ? f.name : '', color = (f && f.color) || FCOLORS[0], icon = (f && f.icon) || 'folder';
+    const html = `<div class="fsheet">
+      <div class="fpage" id="fp1">
+        <div class="fsh"><button class="cb2" data-k="x">${sv('<path d="M6 6l12 12M18 6L6 18"/>', 24, 2.4)}</button>
+          <div class="fst">${f ? 'Modifier le dossier' : 'Nouveau dossier'}</div>
+          <button class="cb2 okc" data-k="ok">${I.check}</button></div>
+        <div class="finp"><input id="fname" placeholder="Nom" maxlength="40" autocomplete="off" value="${esc(name)}"></div>
+        <div class="fcard" data-k="cust"><span class="fic" id="fprev1">${fIcon(icon, 34)}</span>
+          <div class="fct"><div class="ft">Personnaliser</div><div class="fsub">Choisissez l'icône et la couleur du dossier</div></div>
+          <span style="color:var(--sub)">${I.chevR}</span></div>
+      </div>
+      <div class="fpage p2" id="fp2">
+        <div class="fsh"><button class="cb2" data-k="back">${I.back}</button><div class="fst">Personnaliser</div><span style="width:44px"></span></div>
+        <div class="fbig" id="fprev2">${fIcon(icon, 64)}</div>
+        <div class="fgrid">${FCOLORS.map(c => `<button class="fsw" data-c="${c}" style="background:${c}"></button>`).join('')}</div>
+        <div class="fgrid ico">${Object.keys(FICONS).map(k => `<button class="fio" data-i="${k}">${fIcon(k, 28)}</button>`).join('')}</div>
+      </div></div>`;
+    openOverlay(html, true);
+    app.classList.add('behind');
+    const sh = ov.querySelector('.fsheet'), inp = sh.querySelector('#fname'), okb = sh.querySelector('.okc');
+    const paint = () => {
+      okb.classList.toggle('on', !!inp.value.trim());
+      sh.querySelectorAll('#fprev1,#fprev2').forEach(e => e.style.color = color);
+      sh.querySelector('#fprev1').innerHTML = fIcon(icon, 34);
+      sh.querySelector('#fprev2').innerHTML = fIcon(icon, 64);
+      sh.querySelectorAll('.fsw').forEach(b => b.classList.toggle('on', b.dataset.c === color));
+      sh.querySelectorAll('.fio').forEach(b => { b.classList.toggle('on', b.dataset.i === icon); b.style.color = b.dataset.i === icon ? color : ''; });
+    };
+    paint();
+    setTimeout(() => inp.focus(), 380);
+    const finish = v => {
+      sh.classList.add('closing'); app.classList.remove('behind'); inp.blur();
+      setTimeout(() => { ovDone = null; closeOverlay(); res(v); }, 300);
+    };
+    ovDone = () => { app.classList.remove('behind'); res(null); };
+    ov.querySelector('.scrim').onclick = null;
+    inp.addEventListener('input', paint);
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter' && inp.value.trim()) finish({ name: inp.value.trim(), color, icon }); });
+    sh.addEventListener('click', e => {
+      const k = e.target.closest('[data-k]'), c = e.target.closest('[data-c]'), i = e.target.closest('[data-i]');
+      if (c) { color = c.dataset.c; paint(); return; }
+      if (i) { icon = i.dataset.i; paint(); return; }
+      if (!k) return;
+      const a = k.dataset.k;
+      if (a === 'x') finish(null);
+      if (a === 'ok' && inp.value.trim()) finish({ name: inp.value.trim(), color, icon });
+      if (a === 'cust') { inp.blur(); sh.classList.add('pg2'); }
+      if (a === 'back') sh.classList.remove('pg2');
+    });
+  });
+}
+
+/* ================= press feedback ================= */
+const PRESS = '[data-a],.mi,.sb,.db button,[data-k],.fsw,.fio';
+let pressed = null, pressX = 0, pressY = 0;
+function unpress(delay) {
+  const el = pressed; pressed = null;
+  if (el) setTimeout(() => el.classList.remove('pr'), delay);
+}
+document.addEventListener('pointerdown', e => {
+  const el = e.target.closest(PRESS);
+  if (!el || el.id === 'ed' || e.target.closest('#ed')) return;
+  unpress(0);
+  pressed = el; pressX = e.clientX; pressY = e.clientY;
+  el.classList.add('pr');
+}, true);
+document.addEventListener('pointermove', e => { if (pressed && Math.hypot(e.clientX - pressX, e.clientY - pressY) > 8) unpress(0); }, true);
+document.addEventListener('pointerup', () => unpress(180), true);
+document.addEventListener('pointercancel', () => unpress(0), true);
+
 /* ================= actions ================= */
 function newNote() {
   const r = cur();
@@ -505,7 +614,7 @@ function newNote() {
   const now = Date.now();
   const n = { id: uid(), folderId: fid, html: '<div><br></div>', text: '', created: now, modified: now, deleted: null };
   db.notes.push(n);
-  if (r.v === 'editor') { leaveEditor(); stack[stack.length - 1] = { v: 'editor', id: n.id, focus: true }; render(true); }
+  if (r.v === 'editor') { leaveEditor(); stack[stack.length - 1] = { v: 'editor', id: n.id, focus: true }; render(1); }
   else go({ v: 'editor', id: n.id, focus: true });
 }
 async function moveNotes(ids) {
@@ -534,9 +643,9 @@ const A = {
   clearQ: () => { query = ''; render(); },
   newNote,
   async newFolder() {
-    const name = await dialog({ title: 'Nouveau dossier', msg: 'Saisissez un nom pour ce dossier.', input: 'Nouveau dossier', ok: 'Enregistrer' });
-    if (!name) return;
-    db.folders.push({ id: uid(), name, created: Date.now() }); persist(); render();
+    const r = await folderSheet();
+    if (!r) return;
+    db.folders.push(Object.assign({ id: uid(), created: Date.now() }, r)); persist(); render();
   },
   toggleFolderEdit() { folderEdit = !folderEdit; render(); },
   toggleCollapse() { db.ui.collapsed = !db.ui.collapsed; persist(); render(); },
@@ -545,9 +654,9 @@ const A = {
   openSettings: () => go({ v: 'settings' }),
   async renameFolder(id) {
     const f = folderOf(id);
-    const name = await dialog({ title: 'Renommer le dossier', input: f.name, ok: 'Enregistrer' });
-    if (!name) return;
-    f.name = name; persist(); render();
+    const r = await folderSheet(f);
+    if (!r) return;
+    Object.assign(f, r); persist(); render();
   },
   async delFolder(id, el, e) {
     e.stopPropagation();
