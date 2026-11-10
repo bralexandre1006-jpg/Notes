@@ -100,21 +100,21 @@ const app = document.getElementById('app');
 const ov = document.getElementById('overlay');
 const fileInput = document.getElementById('file');
 let stack = [{ v: 'folders' }];
-let query = '';
+let query = '', searching = false;
 let folderEdit = false;
 let selMode = false;
 let selected = new Set();
 let ed = null, edNote = null, saveT = null, savedRange = null, newCk = false, newLine = false;
 
 const cur = () => stack[stack.length - 1];
-function go(r, hl) { cur().hl = hl; const sc = view && view.querySelector('.scroll'); cur().scroll = sc ? sc.scrollTop : 0; leaveEditor(); stack.push(r); query = ''; selMode = false; selected.clear(); render(1); }
-function pop() { leaveEditor(); if (stack.length > 1) stack.pop(); query = ''; selMode = false; selected.clear(); render(-1); }
+function go(r, hl) { cur().hl = hl; const sc = view && view.querySelector('.scroll'); cur().scroll = sc ? sc.scrollTop : 0; leaveEditor(); stack.push(r); query = ''; searching = false; selMode = false; selected.clear(); render(1); }
+function pop() { leaveEditor(); if (stack.length > 1) stack.pop(); query = ''; searching = false; selMode = false; selected.clear(); render(-1); }
 
 window.onBack = function () {
   if (ov.classList.contains('show')) { closeOverlay(); return true; }
   if (selMode) { selMode = false; selected.clear(); render(); return true; }
   if (folderEdit) { folderEdit = false; render(); return true; }
-  if (query) { query = ''; render(); return true; }
+  if (searching || query) { A.exitSearch(); return true; }
   if (stack.length > 1) { pop(); return true; }
   return false;
 };
@@ -133,7 +133,7 @@ function viewHTML(r) {
 function render(dir) {
   const r = cur();
   const nv = document.createElement('div');
-  nv.className = 'view';
+  nv.className = 'view' + (searching ? ' searching' : '');
   nv.innerHTML = viewHTML(r);
   const old = view;
   view = nv;
@@ -181,19 +181,31 @@ function bottomSearch(compose = true) {
   return `<div class="bottom">
     <div class="search">${I.search}<input id="q" placeholder="Recherche" value="${esc(query)}" autocomplete="off">${query ? `<button class="x" data-a="clearQ">${I.xc}</button>` : ''}</div>
     ${compose ? `<button class="compose" data-a="newNote">${I.compose}</button>` : ''}
+    <button class="xbtn" data-a="exitSearch">${sv('<path d="M6 6l12 12M18 6L6 18"/>', 22, 2.4)}</button>
   </div>`;
 }
 function bindSearch() {
   const q = $v('#q');
   if (!q) return;
+  q.addEventListener('focus', () => { if (!searching) { searching = true; view.classList.add('searching'); refreshContent(); } });
   q.addEventListener('input', () => {
     query = q.value;
-    const c = $v('#content');
-    if (c) c.innerHTML = cur().v === 'folders' ? foldersContent() : listContent(cur().id);
+    refreshContent(true);
     const s = q.parentElement, x = s.querySelector('.x');
     if (query && !x) s.insertAdjacentHTML('beforeend', `<button class="x" data-a="clearQ">${I.xc}</button>`);
     if (!query && x) x.remove();
   });
+}
+function refreshContent(noAnim) {
+  const c = $v('#content');
+  if (!c) return;
+  c.innerHTML = cur().v === 'folders' ? foldersContent() : listContent(cur().id);
+  c.scrollTop = 0;
+  if (!noAnim) c.querySelectorAll('.sw,.group,.sechdr,h2,h1,.count').forEach((e, i) => { if (i < 10) { e.classList.add('rise'); e.style.animationDelay = (i * 30) + 'ms'; } });
+}
+function recentBlock(arr) {
+  const r = arr.sort((a, b) => b.modified - a.modified).slice(0, 12);
+  return `<h2 class="srh">Notes récentes</h2>` + (r.length ? r.map(noteCard).join('') : '<div class="empty">Aucune note</div>');
 }
 const match = n => !query || (n.text || '').toLowerCase().includes(query.toLowerCase());
 
@@ -238,6 +250,7 @@ function vFolders() {
     ${bottomSearch()}`;
 }
 function foldersContent() {
+  if (searching && !query) return recentBlock(live());
   if (query) {
     const r = live().filter(match);
     return `<h1>Recherche</h1><div class="count">${r.length} résultat${r.length > 1 ? 's' : ''}</div>` + notesBlock(r);
@@ -279,6 +292,7 @@ function listContent(id) {
   const isTrash = id === 'trash';
   const all = isTrash ? trash() : inFolder(id);
   const arr = all.filter(match);
+  if (searching && !query) return recentBlock(all.slice());
   const name = isTrash ? 'Récemment supprimées' : folderOf(id).name;
   const cnt = selMode ? `${selected.size} sélectionnée${selected.size > 1 ? 's' : ''}` : `${all.length} Note${all.length > 1 ? 's' : ''}`;
   return `<h1>${esc(name)}</h1><div class="count">${cnt}</div>
@@ -315,7 +329,7 @@ function vEditor(id) {
       <span class="spacer"></span><button class="compose" data-a="newNote">${I.compose}</button></div>
     <div class="fbox" id="fbar" style="display:none">
       <div class="fpanel" id="fpanel"><div class="fpin">
-        <div class="seg">${[['h1', 'Titre'], ['h2', 'Sous-titre'], ['h3', 'Titre secondaire'], ['', 'Corps']].map(([k, l]) => `<button class="sg sg-${k || 'body'}" data-a="seg" data-id="${k}">${l}</button>`).join('')}</div>
+        <div class="seg segs"><span class="seg-ind"></span>${[['h1', 'Titre'], ['h2', 'Sous-titre'], ['h3', 'Titre secondaire'], ['', 'Corps']].map(([k, l]) => `<button class="sg sg-${k || 'body'}" data-a="seg" data-id="${k}">${l}</button>`).join('')}</div>
         <div class="seg seg2"><button data-a="inl" data-id="bold"><b>B</b></button><button data-a="inl" data-id="italic"><i>I</i></button><button data-a="inl" data-id="underline"><u>U</u></button><button data-a="inl" data-id="strikeThrough"><s>S</s></button><button data-a="seg" data-id="mono" style="font-family:monospace;font-size:17px">Mono</button></div>
       </div></div>
       <div class="frow"><button class="aa" id="aaBtn" data-a="tFormat">Aa</button><button id="ckBtn" data-a="tChecklist">${I.checklist}</button><button id="tbBtn" data-a="tTable">${I.table}</button>
@@ -361,8 +375,11 @@ function cellOf() {
 }
 function syncBar() {
   const b = blockOf(getSelection().anchorNode), k = b ? (['h1', 'h2', 'h3', 'mono'].find(c => b.classList.contains(c)) || '') : '';
-  $v('.seg') && view.querySelectorAll('.fpanel [data-a="seg"]').forEach(x => x.classList.toggle('on', x.dataset.id === k));
-  ['bold', 'italic', 'underline', 'strikeThrough'].forEach(c => { const x = view.querySelector(`[data-a="inl"][data-id="${c}"]`); if (x) x.classList.toggle('on', document.queryCommandState(c)); });
+  let act = null;
+  view.querySelectorAll('.fpanel [data-a="seg"]').forEach(x => { const on = x.dataset.id === k; x.classList.toggle('on', on); if (on && x.closest('.segs')) act = x; });
+  const ind = $v('.seg-ind');
+  if (ind) { if (act) { ind.style.width = act.offsetWidth + 'px'; ind.style.transform = `translateX(${act.offsetLeft - 3}px)`; ind.style.opacity = 1; } else ind.style.opacity = 0; }
+  ['bold', 'italic', 'underline', 'strikeThrough'].forEach(c => { const x = view.querySelector(`[data-a="inl"][data-id="${c}"]`); if (x) x.classList.toggle('on', document.queryCommandState(c) && !(c === 'bold' && /h[123]/.test(k))); });
   const intable = !!cellOf();
   const tb = $v('#tbBtn'), ck = $v('#ckBtn');
   if (tb) tb.classList.toggle('intable', intable);
@@ -531,12 +548,15 @@ function openOverlay(html, dim) {
   ov.classList.add('show');
   ov.querySelector('.scrim').addEventListener('click', () => closeOverlay(null));
 }
+let menuAnchor = null;
 function closeOverlay(v, instant) {
   const t = ++ovTok;
+  const a = menuAnchor; menuAnchor = null;
+  if (a) setTimeout(() => { if (a !== menuAnchor) a.style.visibility = ''; }, instant ? 0 : 280);
   if (instant) { ov.classList.remove('show', 'closing'); ov.innerHTML = ''; }
   else {
     ov.classList.add('closing');
-    setTimeout(() => { if (t === ovTok) { ov.classList.remove('show', 'closing'); ov.innerHTML = ''; } }, 220);
+    setTimeout(() => { if (t === ovTok) { ov.classList.remove('show', 'closing'); ov.innerHTML = ''; } }, 300);
   }
   const d = ovDone; ovDone = null; if (d) d(v === undefined ? null : v);
 }
@@ -632,6 +652,12 @@ function menu(anchor, items) {
       `<div class="mi ${it.red ? 'red' : ''}" data-i="${i}">${it.check !== undefined ? `<span class="chk">${it.check ? I.checkS : ''}</span>` : ''}${it.icon || ''}<span class="t">${esc(it.label)}${it.sub ? `<span class="s">${esc(it.sub)}</span>` : ''}</span>${it.chev ? I.chevR : ''}</div>`
     ).join('') + '</div>';
     openOverlay(html);
+    const m = ov.querySelector('.menu'), mr = m.getBoundingClientRect();
+    m.style.setProperty('--sx', (r.width / mr.width).toFixed(3));
+    m.style.setProperty('--sy', (r.height / mr.height).toFixed(3));
+    m.style.transformOrigin = `${mr.width - r.width / 2}px ${r.height / 2}px`;
+    m.classList.add('morph');
+    anchor.style.visibility = 'hidden'; menuAnchor = anchor;
     ovDone = res;
     ov.querySelectorAll('.mi').forEach(el => el.addEventListener('click', () => closeOverlay(+el.dataset.i)));
   });
@@ -894,7 +920,12 @@ function restoreNotes(ids) {
 
 const A = {
   back: () => pop(),
-  clearQ: () => { query = ''; render(); },
+  clearQ: () => { query = ''; const q = $v('#q'); if (q) { q.value = ''; q.focus(); const x = q.parentElement.querySelector('.x'); if (x) x.remove(); } refreshContent(true); },
+  exitSearch() {
+    searching = false; query = '';
+    const q = $v('#q'); if (q) { q.value = ''; q.blur(); const x = q.parentElement.querySelector('.x'); if (x) x.remove(); }
+    view.classList.remove('searching'); refreshContent();
+  },
   newNote,
   async newFolder() {
     const r = await folderSheet();

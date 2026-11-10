@@ -263,3 +263,39 @@ h2{font-size:23px;font-weight:700;margin:30px 0 14px}
 .okc{transition:background .25s,color .25s}
 .seg button{transition:background .25s,transform .15s}
 .seg button.pr{transform:scale(.94)}
+
+/* ===== iOS 26 glass buttons ===== */
+.cb,.pill,.pillb,.compose,.search,.tools{background:rgba(44,44,46,.82);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.13),inset 0 0 0 .5px rgba(255,255,255,.09),0 4px 14px rgba(0,0,0,.35)}
+.cb,.pill,.compose,.ok,.xbtn{transition:transform .45s var(--bounce),background-color .3s,opacity .3s,width .45s var(--spring),margin .45s var(--spring)}
+.cb.pr,.compose.pr,.pill.pr,.xbtn.pr{transform:scale(1.14);background:rgba(80,80,84,.9);transition:transform .25s cubic-bezier(.2,.9,.3,1.3),background-color .1s}
+.ok.pr{transform:scale(1.12);opacity:1}
+.pillb button{transition:transform .4s var(--bounce),opacity .2s}
+.pillb button.pr{transform:scale(1.2);opacity:.6}
+
+/* ===== menu morph ===== */
+.menu.morph{animation:morphIn .55s var(--bounce) both;will-change:transform}
+@keyframes morphIn{0%{transform:scale(var(--sx),var(--sy));border-radius:60px;background:rgba(70,70,74,.95)}55%{border-radius:30px}100%{transform:none}}
+.menu.morph .mi{animation:miIn .38s ease-out .1s both}
+@keyframes miIn{from{opacity:0;filter:blur(8px);transform:scale(.9)}to{opacity:1;filter:none;transform:none}}
+#overlay.closing .menu.morph{animation:morphOut .3s cubic-bezier(.4,0,.2,1) both}
+@keyframes morphOut{to{transform:scale(var(--sx),var(--sy));border-radius:60px;opacity:.4}}
+#overlay.closing .menu.morph .mi{animation:miOut .14s ease-in both}
+@keyframes miOut{to{opacity:0;filter:blur(8px)}}
+
+/* ===== search mode ===== */
+.view>.hdr{transition:margin-top .5s var(--spring),opacity .25s}
+.searching>.hdr{margin-top:calc(-62px - var(--st));opacity:0;pointer-events:none}
+.srh{margin-top:18px}
+.xbtn{width:0;height:48px;border-radius:50%;flex:none;overflow:hidden;opacity:0;margin-left:-14px;display:flex;align-items:center;justify-content:center;
+  background:rgba(44,44,46,.82);box-shadow:inset 0 1px 0 rgba(255,255,255,.13),inset 0 0 0 .5px rgba(255,255,255,.09);transform:scale(.4)}
+.searching .xbtn{width:48px;opacity:1;margin-left:0;transform:none}
+.compose{overflow:hidden}
+.searching .compose{width:0;opacity:0;margin-left:-14px;transform:scale(.4)}
+
+/* ===== segmented sliding pill ===== */
+.segs{position:relative}
+.seg-ind{position:absolute;left:3px;top:3px;height:44px;border-radius:24px;background:#636366;opacity:0;
+  transition:transform .5s var(--bounce),width .5s var(--bounce),opacity .2s;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.segs button{position:relative;z-index:1}
+.segs button.on{background:none}
