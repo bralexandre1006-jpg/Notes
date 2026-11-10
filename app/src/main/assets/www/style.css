@@ -226,3 +226,35 @@ h2{font-size:23px;font-weight:700;margin:30px 0 14px}
 .frow button.off{opacity:.35;pointer-events:none}
 .frow button.intable::after{content:"···";position:absolute;right:calc(50% - 22px);bottom:12px;width:18px;height:18px;border-radius:50%;background:#fff;color:#1e1e20;
   font-size:13px;line-height:12px;font-weight:900;text-align:center;letter-spacing:-1px}
+
+/* ===== animations ===== */
+.scrim{animation:fin .22s ease-out both}
+.scrim.blur{background:rgba(0,0,0,.35);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+#overlay.closing .scrim{animation:fout .2s ease-in both}
+#overlay.closing .menu,#overlay.closing .dlg{animation:popout .18s ease-in both}
+#overlay.closing .sheet{animation:down .22s ease-in both}
+#overlay.closing .cxcard{animation:cxback .22s ease-in both}
+@keyframes fin{from{opacity:0}to{opacity:1}}
+@keyframes fout{to{opacity:0}}
+@keyframes popout{to{opacity:0;transform:scale(.9)}}
+@keyframes down{to{transform:translateY(110%)}}
+.dlg{animation:dlgin .3s cubic-bezier(.22,1.2,.36,1) both}
+@keyframes dlgin{from{opacity:0;transform:translate(-50%,-50%) scale(1.12)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+#overlay.closing .dlg{animation:dlgout .18s ease-in both}
+@keyframes dlgout{to{opacity:0;transform:translate(-50%,-50%) scale(.94)}}
+.sheet{animation:up .34s cubic-bezier(.22,1,.36,1) both}
+.menu{animation:pop .26s cubic-bezier(.22,1.15,.36,1) both}
+.cxcard{position:absolute;z-index:2;animation:cxlift .32s cubic-bezier(.22,1.15,.36,1) both;pointer-events:none}
+.cxcard .ncard{box-shadow:0 18px 50px rgba(0,0,0,.7);margin:0}
+@keyframes cxlift{from{transform:none}to{transform:translateY(var(--dy)) scale(1.03)}}
+@keyframes cxback{from{transform:translateY(var(--dy)) scale(1.03)}to{transform:none;opacity:.6}}
+.cxmenu{transform-origin:top left;min-width:240px}
+.ncard{transition:background-color .25s,transform .25s cubic-bezier(.22,1,.36,1)}
+.ncard.pr{transform:scale(.97)}
+.rise{animation:rise .5s cubic-bezier(.22,1,.36,1) both}
+@keyframes rise{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:none}}
+.folding{overflow:hidden;transition:height .32s cubic-bezier(.22,1,.36,1),opacity .25s}
+.mi{transition:background .15s}
+.okc{transition:background .25s,color .25s}
+.seg button{transition:background .25s,transform .15s}
+.seg button.pr{transform:scale(.94)}

@@ -145,7 +145,8 @@ function render(dir) {
   } else {
     old.style.pointerEvents = 'none';
     const top = dir > 0 ? nv : old, under = dir > 0 ? old : nv;
-    if (dir > 0) app.appendChild(nv); else app.insertBefore(nv, old);
+    if (dir > 0) { app.appendChild(nv); nv.querySelectorAll('.sw,.group,.sechdr,.scroll>h2').forEach((e, i) => { if (i < 12) { e.classList.add('rise'); e.style.animationDelay = (120 + i * 28) + 'ms'; } }); }
+    else app.insertBefore(nv, old);
     if (dir < 0) {
       const sc = nv.querySelector('.scroll'); if (sc && r.scroll) sc.scrollTop = r.scroll;
       const h = r.hl && nv.querySelector(`.ncard[data-id="${r.hl}"],.row[data-id="${r.hl}"]`);
@@ -522,15 +523,105 @@ fileInput.addEventListener('change', () => {
 });
 
 /* ================= overlay ================= */
-let ovDone = null;
+let ovDone = null, ovTok = 0;
 function openOverlay(html, dim) {
+  ovTok++;
+  ov.classList.remove('closing');
   ov.innerHTML = `<div class="scrim ${dim ? 'dim' : ''}"></div>` + html;
   ov.classList.add('show');
   ov.querySelector('.scrim').addEventListener('click', () => closeOverlay(null));
 }
-function closeOverlay(v) {
-  ov.classList.remove('show'); ov.innerHTML = '';
+function closeOverlay(v, instant) {
+  const t = ++ovTok;
+  if (instant) { ov.classList.remove('show', 'closing'); ov.innerHTML = ''; }
+  else {
+    ov.classList.add('closing');
+    setTimeout(() => { if (t === ovTok) { ov.classList.remove('show', 'closing'); ov.innerHTML = ''; } }, 220);
+  }
   const d = ovDone; ovDone = null; if (d) d(v === undefined ? null : v);
+}
+const haptic = () => { try { if (window.Android && Android.haptic) Android.haptic(); else if (navigator.vibrate) navigator.vibrate(8); } catch (e) { } };
+const confirmDelete = (n = 1) => dialog({ title: n > 1 ? `Supprimer ${n} notes ?` : 'Supprimer la note ?', msg: n > 1 ? 'Elles seront déplacées dans Récemment supprimées.' : 'Elle sera déplacée dans Récemment supprimées.', ok: 'Supprimer', red: true });
+function collapseCard(id, then) {
+  const c = view && view.querySelector(`.ncard[data-id="${id}"]`), w = c && c.closest('.sw');
+  if (!w) return then();
+  w.style.height = w.offsetHeight + 'px'; void w.offsetHeight;
+  w.classList.add('gone');
+  setTimeout(then, 340);
+}
+function renameNote(n, name) {
+  const tmp = document.createElement('div'); tmp.innerHTML = n.html || '';
+  const first = [...tmp.children].find(e => e.textContent.trim()) || tmp.firstElementChild;
+  if (first) { [...first.childNodes].forEach(x => { if (!(x.classList && x.classList.contains('box'))) x.remove(); }); first.append(name); }
+  else tmp.innerHTML = `<div class="h1">${esc(name)}</div>`;
+  const ls = (n.text || '').split('\n'), i = ls.findIndex(l => l.trim());
+  if (i >= 0) ls[i] = name; else ls.unshift(name);
+  n.html = tmp.innerHTML; n.text = ls.join('\n'); n.modified = Date.now(); persist();
+}
+function shareNote(n) {
+  const t = titleOf(n), txt = (n.text || '').trim();
+  if (window.Android && Android.share) Android.share(t, txt);
+  else if (navigator.share) navigator.share({ title: t, text: txt }).catch(() => { });
+}
+
+/* ---------- long press context menu ---------- */
+let lp = null;
+app.addEventListener('pointerdown', e => {
+  const card = e.target.closest('.ncard');
+  if (!card || selMode) return;
+  const x0 = e.clientX, y0 = e.clientY;
+  lp = { card, x0, y0, t: setTimeout(() => { lp = null; contextMenu(card); }, 430) };
+});
+const lpCancel = () => { if (lp) { clearTimeout(lp.t); lp = null; } };
+app.addEventListener('pointermove', e => { if (lp && Math.hypot(e.clientX - lp.x0, e.clientY - lp.y0) > 8) lpCancel(); });
+app.addEventListener('pointerup', lpCancel);
+app.addEventListener('pointercancel', lpCancel);
+app.addEventListener('contextmenu', e => e.preventDefault());
+
+async function contextMenu(card) {
+  const id = card.dataset.id, n = db.notes.find(x => x.id === id);
+  if (!n) return;
+  noClickUntil = Date.now() + 600; unpress(0); closeSw(); haptic();
+  const r = card.getBoundingClientRect();
+  const items = n.deleted
+    ? [{ icon: I.restore, label: 'Restaurer' }, { icon: I.trash, label: 'Supprimer définitivement', red: true }]
+    : [{ icon: I.compose, label: 'Ouvrir' }, { icon: I.pencil, label: 'Renommer' }, { icon: I.move, label: 'Déplacer' }, { icon: I.share, label: 'Partager' }, { icon: I.trash, label: 'Supprimer', red: true }];
+  const mh = items.length * 58 + 20;
+  let top = r.top;
+  const maxTop = innerHeight - mh - r.height - 40;
+  if (top > maxTop) top = Math.max(60, maxTop);
+  if (top < 60) top = 60;
+  const clone = card.cloneNode(true);
+  clone.removeAttribute('data-a'); clone.classList.remove('pr');
+  const html = `<div class="cxcard" style="left:${r.left}px;top:${r.top}px;width:${r.width}px;--dy:${top - r.top}px"></div>
+    <div class="menu cxmenu" style="left:${r.left}px;top:${top + r.height + 12}px">` + items.map((it, i) =>
+    `<div class="mi ${it.red ? 'red' : ''}" data-i="${i}">${it.icon}<span class="t">${esc(it.label)}</span></div>`).join('') + '</div>';
+  card.style.visibility = 'hidden';
+  openOverlay(html, true);
+  ov.querySelector('.scrim').classList.add('blur');
+  ov.querySelector('.cxcard').appendChild(clone);
+  const i = await new Promise(res => {
+    ovDone = res;
+    ov.querySelectorAll('.mi').forEach(el => el.addEventListener('click', () => closeOverlay(+el.dataset.i)));
+  });
+  setTimeout(() => { card.style.visibility = ''; }, 200);
+  if (i === null) return;
+  if (n.deleted) {
+    if (i === 0) { restoreNotes([id]); collapseCard(id, () => render()); }
+    if (i === 1) {
+      const ok = await dialog({ title: 'Supprimer définitivement ?', msg: 'Cette action est irréversible.', ok: 'Supprimer', red: true });
+      if (ok) collapseCard(id, () => { db.notes = db.notes.filter(x => x.id !== id); persist(); render(); });
+    }
+    return;
+  }
+  if (i === 0) go({ v: 'editor', id }, id);
+  if (i === 1) {
+    const name = await dialog({ title: 'Renommer la note', input: titleOf(n) === 'Nouvelle note' ? '' : titleOf(n), ok: 'Enregistrer' });
+    if (name) { renameNote(n, name); render(); }
+  }
+  if (i === 2) { if (await moveNotes([id])) render(); }
+  if (i === 3) shareNote(n);
+  if (i === 4) { if (await confirmDelete()) { trashNotes([id]); collapseCard(id, () => render()); } }
 }
 ov.addEventListener('mousedown', e => { if (ed && document.activeElement === ed && !e.target.closest('input')) e.preventDefault(); });
 
@@ -697,7 +788,7 @@ const swEnd = () => {
   if (!s.on) return;
   noClickUntil = Date.now() + 350;
   const x = s.x || 0, W = s.card.offsetWidth;
-  if (x < -W * 0.6) { setX(s.card, -W - 40, true); setTimeout(() => A.swDel(s.card.dataset.id, s.card), 200); return; }
+  if (x < -W * 0.6) { setX(s.card, SW_OPEN, true); openSw = s.card; A.swDel(s.card.dataset.id, s.card); return; }
   if (x < -60 || s.v < -0.5) { setX(s.card, SW_OPEN, true); openSw = s.card; }
   else { setX(s.card, 0, true); if (openSw === s.card) openSw = null; }
 };
@@ -747,7 +838,22 @@ const A = {
     db.folders.push(Object.assign({ id: uid(), created: Date.now() }, r)); persist(); render();
   },
   toggleFolderEdit() { folderEdit = !folderEdit; render(); },
-  toggleCollapse() { db.ui.collapsed = !db.ui.collapsed; persist(); render(); },
+  toggleCollapse(_, el) {
+    const g = el.nextElementSibling, coll = !db.ui.collapsed;
+    db.ui.collapsed = coll; persist();
+    el.classList.toggle('col', coll);
+    if (coll && g && g.classList.contains('group')) {
+      g.style.height = g.offsetHeight + 'px'; void g.offsetHeight;
+      g.classList.add('folding'); g.style.height = '0px'; g.style.opacity = '0';
+      setTimeout(render, 330);
+    } else {
+      render();
+      const g2 = $v('.sechdr').nextElementSibling, h = g2.offsetHeight;
+      g2.style.height = '0px'; g2.style.opacity = '0'; void g2.offsetHeight;
+      g2.classList.add('folding'); g2.style.height = h + 'px'; g2.style.opacity = '1';
+      setTimeout(() => { g2.classList.remove('folding'); g2.style.height = ''; }, 340);
+    }
+  },
   openFolder: id => go({ v: 'list', id }, id),
   openTrash: () => go({ v: 'list', id: 'trash' }),
   openSettings: () => go({ v: 'settings' }),
@@ -802,12 +908,12 @@ const A = {
     }
     if (i === 2) go({ v: 'settings' });
   },
-  swDel(id, el) {
-    const w = el.closest('.sw');
-    trashNotes([id]); openSw = null;
-    w.style.height = w.offsetHeight + 'px'; void w.offsetHeight;
-    w.classList.add('gone');
-    setTimeout(() => render(), 320);
+  async swDel(id) {
+    if (!(await confirmDelete())) { closeSw(); return; }
+    const c = view.querySelector(`.ncard[data-id="${id}"]`);
+    if (c) setX(c, -c.offsetWidth - 40, true);
+    openSw = null; trashNotes([id]);
+    setTimeout(() => collapseCard(id, () => render()), 180);
   },
   async swMove(id) { closeSw(); if (await moveNotes([id])) render(); },
   endSel() { selMode = false; selected.clear(); render(); },
@@ -822,7 +928,7 @@ const A = {
       const ok = await dialog({ title: 'Supprimer définitivement ?', msg: 'Cette action est irréversible.', ok: 'Supprimer', red: true });
       if (!ok) return;
       db.notes = db.notes.filter(n => !selected.has(n.id)); persist();
-    } else trashNotes(ids);
+    } else { if (!(await confirmDelete(ids.length))) return; trashNotes(ids); }
     selMode = false; selected.clear(); render();
   },
   selRestore() { if (!selected.size) return; restoreNotes([...selected]); selMode = false; selected.clear(); render(); },
@@ -842,10 +948,7 @@ const A = {
   doneEdit() { saveNote(); ed && ed.blur(); getSelection().removeAllRanges(); editing(false); },
   share() {
     saveNote();
-    const n = edNote; if (!n) return;
-    const t = titleOf(n), txt = (n.text || '').trim();
-    if (window.Android && Android.share) Android.share(t, txt);
-    else if (navigator.share) navigator.share({ title: t, text: txt }).catch(() => { });
+    if (edNote) shareNote(edNote);
   },
   async noteMenu(_, el) {
     const i = await menu(el, [{ icon: I.move, label: 'Déplacer la note' }, { icon: I.trash, label: 'Supprimer', red: true }]);
@@ -854,6 +957,7 @@ const A = {
       saveNote();
       const n = edNote;
       if (isEmptyNote(n)) { pop(); return; }
+      if (!(await confirmDelete())) return;
       trashNotes([n.id]); edNote = null; ed = null; pop();
     }
   },
