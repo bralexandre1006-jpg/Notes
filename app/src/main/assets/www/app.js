@@ -150,7 +150,7 @@ function render(dir) {
       const h = r.hl && nv.querySelector(`.ncard[data-id="${r.hl}"],.row[data-id="${r.hl}"]`);
       if (h) { h.classList.add('pr'); setTimeout(() => h.classList.remove('pr'), 500); }
     }
-    const OFF = 'translate3d(-100%,0,0)', PAR = 'translate3d(30%,0,0)';
+    const OFF = 'translate3d(100%,0,0)', PAR = 'translate3d(-30%,0,0)';
     const set = (el, t, o) => { el.style.transform = t; el.style.opacity = o; };
     top.classList.add('moving'); under.classList.add('moving');
     if (dir > 0) { set(top, OFF, 1); set(under, 'translate3d(0,0,0)', 1); }

@@ -26,7 +26,7 @@ svg{display:block}
 .swb.pr{opacity:.7}
 .moving{will-change:transform,opacity}
 .anim{transition:transform .62s cubic-bezier(.22,1,.36,1),opacity .62s cubic-bezier(.22,1,.36,1)}
-.moving:last-child{box-shadow:12px 0 32px rgba(0,0,0,.65)}
+.moving:last-child{box-shadow:-12px 0 32px rgba(0,0,0,.65)}
 
 /* press feedback */
 .ncard,.row,.cb,.pill,.compose,.ok,.mi,.sb,.fcard,.cb2{transition:background-color .25s,opacity .25s,transform .2s}
