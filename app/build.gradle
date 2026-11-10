@@ -1,0 +1,43 @@
+plugins {
+    id 'com.android.application'
+}
+
+def runNumber = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInteger()
+
+android {
+    namespace 'be.alexandre.notes'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'be.alexandre.notes'
+        minSdk 26
+        targetSdk 34
+        versionCode runNumber
+        versionName "1.0.${runNumber}"
+    }
+
+    // Même clé à chaque build -> mises à jour sans désinstaller
+    signingConfigs {
+        release {
+            storeFile rootProject.file('keystore/notes.jks')
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: 'notes123456'
+            keyAlias System.getenv("KEY_ALIAS") ?: 'notes'
+            keyPassword System.getenv("KEY_PASSWORD") ?: 'notes123456'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+        debug {
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
