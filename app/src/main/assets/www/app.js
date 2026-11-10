@@ -166,7 +166,7 @@ function render(dir) {
     setTimeout(() => {
       old.remove();
       nv.classList.remove('moving', 'anim'); nv.style.transform = ''; nv.style.opacity = '';
-    }, 700);
+    }, 560);
   }
   const sc = nv.querySelector('.scroll');
   if (sc) {
@@ -773,7 +773,8 @@ app.addEventListener('pointermove', e => {
   const dx = e.clientX - sw.x0, dy = e.clientY - sw.y0;
   if (!sw.on) {
     if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { sw.dead = true; return; }
-    if (Math.abs(dx) > 10) { sw.on = true; unpress(0); }
+    if (Math.abs(dx) > 10 && (dx < 0 || sw.base)) { sw.on = true; unpress(0); }
+    else if (dx > 10) { sw.dead = true; return; }
     else return;
   }
   const now = Date.now(); sw.v = (e.clientX - sw.lx) / Math.max(1, now - sw.lt); sw.lx = e.clientX; sw.lt = now;
@@ -794,6 +795,69 @@ const swEnd = () => {
 };
 app.addEventListener('pointerup', swEnd);
 app.addEventListener('pointercancel', swEnd);
+
+/* ================= swipe back (iOS) ================= */
+let bk = null;
+app.addEventListener('pointerdown', e => {
+  bk = null;
+  if (stack.length < 2 || selMode || openSw || ov.classList.contains('show') || !view || app.querySelectorAll('.view').length > 1) return;
+  if (cur().v === 'editor' && e.clientX > 30) return;
+  if (e.target.closest('input,.fbox,.bottom')) return;
+  bk = { x0: e.clientX, y0: e.clientY, on: false, lx: e.clientX, lt: performance.now(), v: 0, x: 0 };
+}, true);
+app.addEventListener('pointermove', e => {
+  if (!bk) return;
+  const dx = e.clientX - bk.x0, dy = e.clientY - bk.y0;
+  if (!bk.on) {
+    if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { bk = null; return; }
+    if (dx < -10) { bk = null; return; }
+    if (dx > 12 && dx > Math.abs(dy) * 1.3) startBack(); else return;
+  }
+  const now = performance.now();
+  bk.v = (e.clientX - bk.lx) / Math.max(1, now - bk.lt); bk.lx = e.clientX; bk.lt = now;
+  bk.x = Math.max(0, dx - 12);
+  moveBack(bk.x);
+}, true);
+function startBack() {
+  bk.on = true; lpCancel(); unpress(0); if (sw) sw.dead = true;
+  if (ed) { saveNote(); ed.blur(); }
+  const prev = stack[stack.length - 2];
+  const u = document.createElement('div');
+  u.className = 'view moving';
+  u.innerHTML = viewHTML(prev);
+  app.insertBefore(u, view);
+  const sc = u.querySelector('.scroll'); if (sc && prev.scroll) sc.scrollTop = prev.scroll;
+  view.classList.add('moving');
+  bk.under = u; bk.top = view; bk.W = innerWidth;
+}
+function moveBack(x) {
+  const W = bk.W, p = Math.min(1, x / W);
+  bk.top.style.transform = `translate3d(${x}px,0,0)`;
+  bk.under.style.transform = `translate3d(${-0.3 * W * (1 - p)}px,0,0)`;
+  bk.under.style.opacity = .55 + .45 * p;
+}
+function endBack() {
+  if (!bk) return;
+  const b = bk; bk = null;
+  if (!b.on) return;
+  noClickUntil = Date.now() + 350;
+  const done = b.x > b.W * 0.4 || (b.v > 0.35 && b.x > 30);
+  [b.top, b.under].forEach(el => el.classList.add('anim', 'fast'));
+  requestAnimationFrame(() => {
+    if (done) { b.top.style.transform = `translate3d(${b.W}px,0,0)`; b.under.style.transform = 'translate3d(0,0,0)'; b.under.style.opacity = 1; }
+    else { b.top.style.transform = 'translate3d(0,0,0)'; b.under.style.transform = `translate3d(${-0.3 * b.W}px,0,0)`; b.under.style.opacity = .55; }
+  });
+  setTimeout(() => {
+    if (done) {
+      leaveEditor(); stack.pop(); query = ''; selMode = false; selected.clear();
+      b.top.remove(); view = b.under; render(0);
+    } else {
+      b.under.remove(); b.top.classList.remove('moving', 'anim', 'fast'); b.top.style.transform = '';
+    }
+  }, 360);
+}
+app.addEventListener('pointerup', endBack, true);
+app.addEventListener('pointercancel', endBack, true);
 
 /* ================= actions ================= */
 function newNote() {

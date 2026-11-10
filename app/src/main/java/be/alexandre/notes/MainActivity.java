@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.Display;
 import android.view.HapticFeedbackConstants;
+import android.view.WindowManager;
 import android.view.Window;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
@@ -25,6 +27,18 @@ public class MainActivity extends Activity {
         Window w = getWindow();
         w.setStatusBarColor(Color.BLACK);
         w.setNavigationBarColor(Color.BLACK);
+        try {
+            Display d = getWindowManager().getDefaultDisplay();
+            Display.Mode cur = d.getMode(), best = cur;
+            for (Display.Mode m : d.getSupportedModes()) {
+                if (m.getPhysicalWidth() == cur.getPhysicalWidth() && m.getPhysicalHeight() == cur.getPhysicalHeight()
+                        && m.getRefreshRate() > best.getRefreshRate()) best = m;
+            }
+            WindowManager.LayoutParams lp = w.getAttributes();
+            lp.preferredDisplayModeId = best.getModeId();
+            lp.preferredRefreshRate = best.getRefreshRate();
+            w.setAttributes(lp);
+        } catch (Exception ignored) { }
 
         web = new WebView(this);
         web.setBackgroundColor(Color.BLACK);
