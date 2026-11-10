@@ -24,14 +24,9 @@ svg{display:block}
 .swb.mv{background:#5e5ce6}
 .swb.del{background:var(--red)}
 .swb.pr{opacity:.7}
-.in-r{animation:inR .56s cubic-bezier(.2,.9,.3,1) both;box-shadow:-12px 0 30px rgba(0,0,0,.6)}
-.out-l{animation:outL .56s cubic-bezier(.2,.9,.3,1) both}
-.in-l{animation:inL .5s cubic-bezier(.2,.9,.3,1) both}
-.out-r{animation:outR .5s cubic-bezier(.2,.9,.3,1) both;box-shadow:-12px 0 30px rgba(0,0,0,.6)}
-@keyframes inR{from{transform:translate3d(100%,0,0)}to{transform:translate3d(0,0,0)}}
-@keyframes outL{from{transform:translate3d(0,0,0);opacity:1}to{transform:translate3d(-30%,0,0);opacity:.55}}
-@keyframes inL{from{transform:translate3d(-30%,0,0);opacity:.55}to{transform:translate3d(0,0,0);opacity:1}}
-@keyframes outR{from{transform:translate3d(0,0,0)}to{transform:translate3d(100%,0,0)}}
+.moving{will-change:transform,opacity}
+.anim{transition:transform .62s cubic-bezier(.22,1,.36,1),opacity .62s cubic-bezier(.22,1,.36,1)}
+.moving:last-child{box-shadow:12px 0 32px rgba(0,0,0,.65)}
 
 /* press feedback */
 .ncard,.row,.cb,.pill,.compose,.ok,.mi,.sb,.fcard,.cb2{transition:background-color .25s,opacity .25s,transform .2s}

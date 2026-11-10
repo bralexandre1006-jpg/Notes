@@ -143,14 +143,28 @@ function render(dir) {
     const sc = nv.querySelector('.scroll'); if (sc && keep) sc.scrollTop = keep;
   } else {
     old.style.pointerEvents = 'none';
-    if (dir > 0) { app.appendChild(nv); nv.classList.add('in-r'); old.classList.add('out-l'); }
-    else {
-      app.insertBefore(nv, old); nv.classList.add('in-l'); old.classList.add('out-r');
+    const top = dir > 0 ? nv : old, under = dir > 0 ? old : nv;
+    if (dir > 0) app.appendChild(nv); else app.insertBefore(nv, old);
+    if (dir < 0) {
       const sc = nv.querySelector('.scroll'); if (sc && r.scroll) sc.scrollTop = r.scroll;
       const h = r.hl && nv.querySelector(`.ncard[data-id="${r.hl}"],.row[data-id="${r.hl}"]`);
-      if (h) { h.classList.add('pr'); setTimeout(() => h.classList.remove('pr'), 380); }
+      if (h) { h.classList.add('pr'); setTimeout(() => h.classList.remove('pr'), 500); }
     }
-    setTimeout(() => { old.remove(); nv.classList.remove('in-r', 'in-l'); }, 600);
+    const OFF = 'translate3d(-100%,0,0)', PAR = 'translate3d(30%,0,0)';
+    const set = (el, t, o) => { el.style.transform = t; el.style.opacity = o; };
+    top.classList.add('moving'); under.classList.add('moving');
+    if (dir > 0) { set(top, OFF, 1); set(under, 'translate3d(0,0,0)', 1); }
+    else { set(top, 'translate3d(0,0,0)', 1); set(under, PAR, .5); }
+    void app.offsetWidth;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      top.classList.add('anim'); under.classList.add('anim');
+      if (dir > 0) { set(top, 'translate3d(0,0,0)', 1); set(under, PAR, .5); }
+      else { set(top, OFF, 1); set(under, 'translate3d(0,0,0)', 1); }
+    }));
+    setTimeout(() => {
+      old.remove();
+      nv.classList.remove('moving', 'anim'); nv.style.transform = ''; nv.style.opacity = '';
+    }, 700);
   }
   const sc = nv.querySelector('.scroll');
   if (sc) {
@@ -320,7 +334,7 @@ function setupEditor(focus, animated) {
   $v('#okBtn').addEventListener('mousedown', e => e.preventDefault());
   if (focus) {
     const e0 = ed;
-    setTimeout(() => { if (ed !== e0) return; ed.focus({ preventScroll: true }); caretEnd(ed.lastElementChild || ed); }, animated ? 380 : 0);
+    setTimeout(() => { if (ed !== e0) return; ed.focus({ preventScroll: true }); caretEnd(ed.lastElementChild || ed); }, animated ? 650 : 0);
   }
 }
 function keepRange() {
