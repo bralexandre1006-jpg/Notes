@@ -45,6 +45,7 @@ const I = {
   lockW: '<svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M7 10V7.5a5 5 0 0 1 10 0V10h.5A1.5 1.5 0 0 1 19 11.5v8a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19.5v-8A1.5 1.5 0 0 1 6.5 10zm2 0h6V7.5a3 3 0 0 0-6 0z"/></svg>',
   up: sv('<path d="M6 15l6-6 6 6"/>', 22, 2.4),
   down: sv('<path d="M6 9l6 6 6-6"/>', 22, 2.4),
+  eye: sv('<path d="M3 3l18 18M10.6 6.1A9.9 9.9 0 0 1 12 6c5 0 8.5 4 9.5 6-.5 1-1.6 2.6-3.2 3.9M6.3 7.6C4.5 8.9 3.2 10.7 2.5 12c1 2 4.5 6 9.5 6 1.6 0 3-.4 4.3-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>', 28, 1.6),
   pencil: sv('<path d="M15.5 4.5l4 4L8 20H4v-4z"/>', 28, 1.6)
 };
 
@@ -288,10 +289,11 @@ function foldersContent() {
   return `<h1>Dossiers</h1>
     <div class="sechdr ${col ? 'col' : ''}" data-a="toggleCollapse"><h2>Tous les dossiers</h2><span style="color:var(--sub)">${I.chevD}</span></div>
     ${col ? '' : `<div class="group">${rows}</div>`}
-    <div class="group${folderEdit ? ' dimg' : ''}">
+    ${db.settings.hideSys && !folderEdit ? '' : `<div class="group${folderEdit ? ' sysg' : ''}">
       <div class="row" data-a="openTrash"><span class="ic">${I.trash}</span><span class="lbl">Récemment supprimées</span><span class="cnt">${trash().length}</span><span class="cnt">${I.chevR}</span></div>
       <div class="row" data-a="openSettings"><span class="ic">${I.gear}</span><span class="lbl">Paramètres</span><span class="cnt">${I.chevR}</span></div>
-    </div>`;
+      ${folderEdit ? `<div class="row" data-a="toggleSys"><span class="ic" style="color:var(--sub)">${I.eye}</span><span class="lbl">Masquer cette section</span><span class="tog ${db.settings.hideSys ? 'on' : ''}"></span></div>` : ''}
+    </div>`}`;
 }
 
 /* ---------- list view ---------- */
@@ -1216,6 +1218,7 @@ const A = {
     const i = await sheet('Trier les notes par', keys.map(k => ({ label: SORTS[k] + (db.settings.sort === k ? '  ✓' : '') })));
     if (i !== null) { db.settings.sort = keys[i]; persist(); render(); }
   },
+  toggleSys() { db.settings.hideSys = !db.settings.hideSys; persist(); render(); },
   toggleGroup() { db.settings.group = !db.settings.group; persist(); render(); },
   async pickStart() {
     const K = Object.keys(STARTS);
