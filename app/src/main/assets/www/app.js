@@ -27,6 +27,24 @@ const I = {
   minus: '<svg width="14" height="14" viewBox="0 0 24 24"><path d="M5 12h14" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/></svg>',
   restore: sv('<path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/>', 28, 1.7),
   undo: sv('<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>', 26, 2.2),
+  scan: sv('<path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1"/><path d="M10 11h4M10 13.5h3"/>', 28, 1.7),
+  pin: '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 3h8l-1 2v5l3 4H6l3-4V5z"/><path d="M11.2 14h1.6v7l-.8 1-.8-1z"/></svg>',
+  lock: '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V7.5a5 5 0 0 1 10 0V10h.5A1.5 1.5 0 0 1 19 11.5v8a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19.5v-8A1.5 1.5 0 0 1 6.5 10zm2 0h6V7.5a3 3 0 0 0-6 0z"/></svg>',
+  lockS: '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V7.5a5 5 0 0 1 10 0V10h.5A1.5 1.5 0 0 1 19 11.5v8a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19.5v-8A1.5 1.5 0 0 1 6.5 10zm2 0h6V7.5a3 3 0 0 0-6 0z"/></svg>',
+  pinS: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 3h8l-1 2v5l3 4H6l3-4V5z"/><path d="M11.2 14h1.6v7l-.8 1-.8-1z"/></svg>',
+  folderM: sv('<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h3.4l2 2h7.6A2.5 2.5 0 0 1 21 9.5v8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/><path d="M3 10.5h18"/>', 28, 1.6),
+  summary: sv('<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M7 9h1M10.5 9H17M7 12h1M10.5 12H17M7 15h1M10.5 15H15"/>', 28, 1.6),
+  sliders: sv('<path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2" fill="#2c2c2e"/><circle cx="15" cy="12" r="2" fill="#2c2c2e"/><circle cx="10" cy="17" r="2" fill="#2c2c2e"/>', 28, 1.6),
+  eqc: sv('<circle cx="12" cy="12" r="9"/><path d="M8.5 10.3h7M8.5 13.7h7"/>', 28, 1.6),
+  filedown: sv('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9.5 14.5L12 17l2.5-2.5"/>', 28, 1.6),
+  cloud: '<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M7 19a5 5 0 0 1-.7-9.95A6 6 0 0 1 17.8 9 4.5 4.5 0 0 1 17.5 19z"/></svg>',
+  pie: '<svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#fff"/><path d="M12 12V3a9 9 0 0 1 8.5 6z" fill="#5ac8fa" stroke="#fff" stroke-width="1"/></svg>',
+  sortS: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M7 4v15M4 16l3 3 3-3M13 6h7M13 11h5M13 16h3"/></svg>',
+  startS: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M5 7h7M15 5l3 2-3 2M5 12h14M5 17h14"/></svg>',
+  ckS: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="7" r="2.3"/><circle cx="6" cy="17" r="2.3"/><path d="M11 7h9M11 17h9"/></svg>',
+  lockW: '<svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M7 10V7.5a5 5 0 0 1 10 0V10h.5A1.5 1.5 0 0 1 19 11.5v8a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19.5v-8A1.5 1.5 0 0 1 6.5 10zm2 0h6V7.5a3 3 0 0 0-6 0z"/></svg>',
+  up: sv('<path d="M6 15l6-6 6 6"/>', 22, 2.4),
+  down: sv('<path d="M6 9l6 6 6-6"/>', 22, 2.4),
   pencil: sv('<path d="M15.5 4.5l4 4L8 20H4v-4z"/>', 28, 1.6)
 };
 
@@ -37,13 +55,13 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function fresh() {
-  return { folders: [{ id: 'notes', name: 'Notes', created: Date.now() }], notes: [], settings: { sort: 'modified', group: true }, ui: { collapsed: false } };
+  return { folders: [{ id: 'notes', name: 'Notes', created: Date.now() }], notes: [], settings: { sort: 'modified', group: true, start: 'h1', ck: 'manual', math: 'suggest' }, ui: { collapsed: false } };
 }
 function load() {
   try {
     const d = JSON.parse(localStorage.getItem(KEY));
     if (d && Array.isArray(d.notes)) {
-      d.settings = Object.assign({ sort: 'modified', group: true }, d.settings);
+      d.settings = Object.assign({ sort: 'modified', group: true, start: 'h1', ck: 'manual', math: 'suggest' }, d.settings);
       d.ui = d.ui || { collapsed: false };
       if (!d.folders.find(f => f.id === 'notes')) d.folders.unshift({ id: 'notes', name: 'Notes', created: Date.now() });
       return d;
@@ -207,7 +225,7 @@ function recentBlock(arr) {
   const r = arr.sort((a, b) => b.modified - a.modified).slice(0, 12);
   return `<h2 class="srh">Notes récentes</h2>` + (r.length ? r.map(noteCard).join('') : '<div class="empty">Aucune note</div>');
 }
-const match = n => !query || (n.text || '').toLowerCase().includes(query.toLowerCase());
+const match = n => !query || (n.locked ? titleOf(n) : (n.text || '')).toLowerCase().includes(query.toLowerCase());
 
 function noteCard(n) {
   const sort = db.settings.sort, t = sort === 'created' ? n.created : n.modified;
@@ -215,10 +233,10 @@ function noteCard(n) {
   const sel = selMode ? `<div class="sel ${selected.has(n.id) ? 'on' : ''}">${selected.has(n.id) ? I.checkS : ''}</div>` : '';
   const swipe = !selMode && !n.deleted;
   return `<div class="sw">${swipe ? `<div class="swa"><button class="swb mv" data-a="swMove" data-id="${n.id}">${I.move}</button><button class="swb del" data-a="swDel" data-id="${n.id}">${I.trash}</button></div>` : ''}<div class="ncard${swipe ? ' swp' : ''}" data-a="open" data-id="${n.id}">${sel}
-    <div class="b"><div class="nt">${esc(titleOf(n))}</div>
-    <div class="n2"><span class="d">${shortDate(n.deleted || t)}</span>${esc(previewOf(n))}</div>
+    <div class="b"><div class="nt">${n.locked ? `<span class="lk">${I.lockS}</span>` : ''}${esc(titleOf(n))}</div>
+    <div class="n2"><span class="d">${shortDate(n.deleted || t)}</span>${n.locked ? 'Verrouillée' : esc(previewOf(n))}</div>
     <div class="n3">${I.folderS}${esc(folderOf(n.folderId).name)}</div></div>
-    ${img ? `<img class="thumb" src="${img}">` : ''}</div></div>`;
+    ${img && !n.locked ? `<img class="thumb" src="${img}">` : ''}</div></div>`;
 }
 function sortNotes(arr) {
   const s = db.settings.sort;
@@ -230,6 +248,8 @@ function notesBlock(arr, trashMode) {
   if (!arr.length) return `<div class="empty">${query ? 'Aucun résultat' : 'Aucune note'}</div>`;
   if (trashMode) return arr.sort((a, b) => b.deleted - a.deleted).map(noteCard).join('');
   sortNotes(arr);
+  const pins = query ? [] : arr.filter(n => n.pinned);
+  if (pins.length) { arr = arr.filter(n => !n.pinned); return `<h2 class="pinh">${I.pinS}Épinglées</h2>` + pins.map(noteCard).join('') + (arr.length ? notesBlock(arr) : ''); }
   if (db.settings.sort === 'title' || !db.settings.group) return `<div style="height:20px"></div>` + arr.map(noteCard).join('');
   const key = db.settings.sort === 'created' ? 'created' : 'modified';
   let out = '', last = null;
@@ -302,18 +322,28 @@ function listContent(id) {
 
 /* ---------- settings ---------- */
 const SORTS = { modified: 'Modification', created: 'Création', title: 'Titre' };
+const STARTS = { h1: 'Titre', h2: 'Sous-titre', h3: 'Titre secondaire', '': 'Corps' };
+const CKS = { manual: 'Manuellement', auto: 'Automatiquement' };
+const sic = (bg, ic) => `<span class="sic" style="background:${bg}">${ic}</span>`;
 function vSettings() {
   return `<div class="hdr"><div class="htitle">Paramètres</div><button class="cb" data-a="back">${I.back}</button><span></span></div>
   <div class="scroll set">
-    <h1>Paramètres</h1><div style="height:24px"></div>
+    <h1>Paramètres</h1><div style="height:20px"></div>
     <div class="group">
-      <div class="row" data-a="pickSort"><span class="lbl">Trier les notes par</span><span class="cnt">${SORTS[db.settings.sort]}</span><span class="cnt">${I.chevR}</span></div>
-      <div class="row" data-a="toggleGroup"><span class="lbl">Regrouper par date</span><span class="tog ${db.settings.group ? 'on' : ''}"></span></div>
+      <div class="row" data-a="pickSort">${sic('linear-gradient(#6b6bf5,#4f4fd8)', I.sortS)}<span class="lbl">Trier les notes par</span><span class="cnt">${SORTS[db.settings.sort]}</span><span class="cnt">${I.chevR}</span></div>
+      <div class="row tall" data-a="pickStart">${sic('linear-gradient(#c56cf0,#a24ed6)', I.startS)}<span class="lbl">Les notes commencent par<span class="ssub">${STARTS[db.settings.start || '']}</span></span><span class="cnt">${I.chevR}</span></div>
+      <div class="row tall" data-a="pickCk">${sic('linear-gradient(#2f8cff,#1a6fe0)', I.ckS)}<span class="lbl">Trier les éléments cochés<span class="ssub">${CKS[db.settings.ck || 'manual']}</span></span><span class="cnt">${I.chevR}</span></div>
     </div>
+    <div class="foot">Déplacer automatiquement les éléments de la liste vers le bas à mesure qu'ils sont cochés.</div>
     <div class="group">
-      <div class="row" data-a="emptyTrash"><span class="lbl" style="color:var(--red)">Vider Récemment supprimées</span></div>
+      <div class="row" data-a="backup">${sic('linear-gradient(#2f8cff,#1a6fe0)', I.cloud)}<span class="lbl">Sauvegarde</span><span class="cnt">${I.chevR}</span></div>
+      <div class="row" data-a="storage">${sic('linear-gradient(#64d2ff,#3fb6ea)', I.pie)}<span class="lbl">Stockage</span><span class="cnt">${I.chevR}</span></div>
     </div>
-    <div class="foot">${live().length} notes · ${db.folders.length} dossier${db.folders.length > 1 ? 's' : ''}</div>
+    <div class="foot">Gérez et sauvegardez vos notes.</div>
+    <div class="group">
+      <div class="row" data-a="lockSettings">${sic('linear-gradient(#2f8cff,#1a6fe0)', I.lockW)}<span class="lbl">Verrouiller les notes</span><span class="cnt">${db.settings.code ? 'Activé' : ''}</span><span class="cnt">${I.chevR}</span></div>
+    </div>
+    <div class="foot">Protégez vos notes privées avec un code.</div>
   </div>`;
 }
 
@@ -323,10 +353,13 @@ function vEditor(id) {
   return `<div class="hdr edhdr"><button class="cb" data-a="back">${I.back}</button>
     <div class="r"><button class="cb" id="undoBtn" data-a="undo" style="display:none">${I.undo}</button><div class="pillb"><button data-a="share">${I.share}</button><button data-a="noteMenu">${I.more}</button></div>
     <button class="ok" id="okBtn" data-a="doneEdit" style="display:none">${I.check}</button></div></div>
-    <div class="edwrap" id="edwrap">
+    <div class="edwrap paper-${n.paper || 'none'}" id="edwrap">
     <div id="ed" contenteditable="true" spellcheck="true">${n.html || '<div class="h1"><br></div>'}</div></div>
     <div class="bottom" id="viewBar"><div class="tools"><button data-a="tChecklist">${I.checklist}</button><button data-a="tAttach">${I.clip}</button></div>
       <span class="spacer"></span><button class="compose" data-a="newNote">${I.compose}</button></div>
+    <div class="findbar" id="findbar"><div class="search">${I.search}<input id="findq" placeholder="Rechercher dans la note" autocomplete="off"></div><span class="fcount" id="fcount"></span>
+      <button class="cb sm" data-a="findPrev">${I.up}</button><button class="cb sm" data-a="findNext">${I.down}</button><button class="pill sm" data-a="findClose">OK</button></div>
+    <button class="mathchip" id="mathchip" data-a="mathInsert"></button>
     <div class="fbox" id="fbar" style="display:none">
       <div class="fpanel" id="fpanel"><div class="fpin">
         <div class="seg segs"><span class="seg-ind"></span>${[['h1', 'Titre'], ['h2', 'Sous-titre'], ['h3', 'Titre secondaire'], ['', 'Corps']].map(([k, l]) => `<button class="sg sg-${k || 'body'}" data-a="seg" data-id="${k}">${l}</button>`).join('')}</div>
@@ -343,11 +376,11 @@ function setupEditor(focus, animated) {
   normalize();
   ed.addEventListener('focus', () => editing(true));
   ed.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== ed) editing(false); }, 50));
-  ed.addEventListener('input', () => { normalize(); schedule(); });
+  ed.addEventListener('input', () => { normalize(); schedule(); mathCheck(); });
   ed.addEventListener('keydown', onKey);
   ed.addEventListener('mousedown', e => { if (e.target.classList.contains('box')) e.preventDefault(); });
   ed.addEventListener('click', e => {
-    if (e.target.classList.contains('box')) { e.target.parentElement.classList.toggle('on'); schedule(); }
+    if (e.target.classList.contains('box')) { const b = e.target.parentElement; b.classList.toggle('on'); if (db.settings.ck === 'auto') ckSort(b); schedule(); }
   });
   document.addEventListener('selectionchange', keepRange);
   ['#fbar', '#viewBar'].forEach(i => $v(i).addEventListener('mousedown', e => e.preventDefault()));
@@ -401,6 +434,7 @@ function editing(on) {
   if (!ok) return;
   ok.style.display = on ? '' : 'none';
   $v('#undoBtn').style.display = on ? '' : 'none';
+  if (!on) { const mc = $v('#mathchip'); if (mc) mc.classList.remove('on'); }
   if (!on) fb.classList.remove('open');
   fb.style.display = on ? '' : 'none';
   vb.style.display = on ? 'none' : '';
@@ -479,6 +513,7 @@ function saveNote() {
 function isEmptyNote(n) { return !(n.text || '').trim() && !/<img|<table/.test(n.html || ''); }
 function leaveEditor() {
   if (!edNote) return;
+  closeFind();
   saveNote();
   if (isEmptyNote(edNote)) db.notes = db.notes.filter(x => x !== edNote), persist();
   document.removeEventListener('selectionchange', keepRange);
@@ -513,11 +548,141 @@ function insertTable() {
   if (t) { t.removeAttribute('data-new'); caretEnd(t.querySelector('td')); }
   schedule(); syncBar();
 }
-function attach() {
+function attach(capture) {
   keepRange();
   fileInput.value = '';
+  if (capture) fileInput.setAttribute('capture', 'environment'); else fileInput.removeAttribute('capture');
   fileInput.click();
 }
+const unlocked = new Set();
+async function setCode() {
+  const c1 = await dialog({ title: 'Créer un code', msg: 'Ce code protégera vos notes verrouillées.', input: '', pass: true, ok: 'Suivant' });
+  if (!c1) return false;
+  const c2 = await dialog({ title: 'Confirmer le code', input: '', pass: true, ok: 'OK' });
+  if (c1 !== c2) { await dialog({ title: 'Les codes ne correspondent pas', ok: 'OK', noCancel: true }); return false; }
+  db.settings.code = c1; persist(); return true;
+}
+async function askCode(title) {
+  const c = await dialog({ title, msg: 'Saisissez le code des notes.', input: '', pass: true, ok: 'OK' });
+  if (c === null) return false;
+  if (c !== db.settings.code) { haptic(); await dialog({ title: 'Code incorrect', ok: 'OK', noCancel: true }); return false; }
+  return true;
+}
+function toast(t) {
+  const d = document.createElement('div'); d.className = 'toast'; d.textContent = t;
+  document.body.appendChild(d);
+  setTimeout(() => d.classList.add('out'), 1500); setTimeout(() => d.remove(), 1900);
+}
+function ckSort(b) {
+  let last = b;
+  while (last.nextElementSibling && last.nextElementSibling.classList.contains('ck')) last = last.nextElementSibling;
+  if (b.classList.contains('on')) { if (last !== b) last.after(b); }
+  else {
+    let first = b;
+    while (first.previousElementSibling && first.previousElementSibling.classList.contains('ck')) first = first.previousElementSibling;
+    if (first !== b) first.before(b);
+  }
+}
+/* ---- find in note ---- */
+let findRanges = [], findIdx = 0;
+function openFind() {
+  const fb = $v('#findbar'); fb.classList.add('on');
+  const q = $v('#findq'); q.value = '';
+  q.oninput = () => runFind(q.value);
+  q.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); A.findNext(); } };
+  setTimeout(() => q.focus(), 60);
+}
+function runFind(t) {
+  findRanges = []; findIdx = 0;
+  if (t && ed) {
+    const w = document.createTreeWalker(ed, NodeFilter.SHOW_TEXT); const tl = t.toLowerCase(); let nd;
+    while ((nd = w.nextNode())) {
+      const v = nd.textContent.toLowerCase(); let i = v.indexOf(tl);
+      while (i >= 0) { const r = document.createRange(); r.setStart(nd, i); r.setEnd(nd, i + t.length); findRanges.push(r); i = v.indexOf(tl, i + t.length); }
+    }
+  }
+  paintFind();
+}
+function paintFind() {
+  const c = $v('#fcount');
+  if (c) c.textContent = findRanges.length ? `${findIdx + 1}/${findRanges.length}` : ($v('#findq').value ? '0' : '');
+  if (!window.CSS || !CSS.highlights) return;
+  CSS.highlights.set('find', new Highlight(...findRanges));
+  if (findRanges[findIdx]) {
+    CSS.highlights.set('findcur', new Highlight(findRanges[findIdx]));
+    const rr = findRanges[findIdx].getBoundingClientRect(), w = $v('#edwrap');
+    if (rr.top < 140 || rr.bottom > innerHeight - 200) w.scrollBy({ top: rr.top - innerHeight / 3, behavior: 'smooth' });
+  } else CSS.highlights.delete('findcur');
+}
+function closeFind() {
+  const fb = $v('#findbar'); if (fb) fb.classList.remove('on');
+  findRanges = []; if (window.CSS && CSS.highlights) { CSS.highlights.delete('find'); CSS.highlights.delete('findcur'); }
+}
+/* ---- summary ---- */
+async function summarize(n) {
+  const ls = lines(n).slice(1);
+  const sents = ls.map(l => (l.match(/[^.!?]+[.!?]?/) || [l])[0].trim()).filter(x => x.length > 2);
+  const sum = sents.slice(0, 4);
+  if (!sum.length) { await dialog({ title: 'Résumer', msg: 'Pas assez de texte à résumer.', ok: 'OK', noCancel: true }); return; }
+  const ok = await dialog({ title: 'Résumé', msg: sum.map(x => '• ' + x).join('\n'), ok: 'Insérer', cancel: 'Fermer' });
+  if (ok && ed) {
+    const first = ed.firstElementChild;
+    const d = document.createElement('div'); d.className = 'sumblk';
+    d.innerHTML = '<b>Résumé</b><br>' + sum.map(esc).join('<br>');
+    if (first) first.after(d); else ed.prepend(d);
+    schedule();
+  }
+}
+/* ---- math results ---- */
+let mathVal = null;
+function mathCheck() {
+  const chip = $v('#mathchip'); if (!chip || !ed) return;
+  mathVal = null; chip.classList.remove('on');
+  if (db.settings.math === 'off') return;
+  const s = getSelection(); if (!s.rangeCount || !s.isCollapsed) return;
+  const b = blockOf(s.anchorNode); if (!b) return;
+  const before = textBeforeCaret(b);
+  const m = before.match(/([\d\s+\-*/().,x×÷%^]+)=\s*$/);
+  if (!m || !/\d/.test(m[1]) || !/[+\-*/x×÷%^]/.test(m[1].replace(/^\s*-/, ''))) return;
+  const ex = m[1].replace(/×|x/g, '*').replace(/÷/g, '/').replace(/,/g, '.').replace(/\^/g, '**').replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
+  let v;
+  try { v = Function('"use strict";return (' + ex + ')')(); } catch (e) { return; }
+  if (typeof v !== 'number' || !isFinite(v)) return;
+  const out = String(Math.round(v * 1e10) / 1e10).replace('.', ',');
+  if (db.settings.math === 'insert') { document.execCommand('insertText', false, ' ' + out); return; }
+  mathVal = out; chip.textContent = '= ' + out; chip.classList.add('on');
+}
+/* ---- markdown import ---- */
+const mdInput = document.createElement('input'); mdInput.type = 'file'; mdInput.accept = '*/*'; mdInput.hidden = true; document.body.appendChild(mdInput);
+function importMd() { keepRange(); mdInput.value = ''; mdInput.click(); }
+function mdInline(t) {
+  return esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/__(.+?)__/g, '<b>$1</b>').replace(/\*(.+?)\*/g, '<i>$1</i>')
+    .replace(/~~(.+?)~~/g, '<s>$1</s>').replace(/`(.+?)`/g, '<span class="mono">$1</span>');
+}
+function mdToHtml(md) {
+  const out = []; let ul = null;
+  for (const raw of md.replace(/\r/g, '').split('\n')) {
+    const l = raw.trimEnd(); let m;
+    if ((m = l.match(/^\s*[-*+]\s+\[( |x|X)\]\s+(.*)$/))) { ul = null; out.push(`<div class="ck${m[1] !== ' ' ? ' on' : ''}"><span class="box" contenteditable="false"></span>${mdInline(m[2])}</div>`); continue; }
+    if ((m = l.match(/^\s*[-*+]\s+(.*)$/))) { if (!ul) { ul = []; out.push(ul); } ul.push(`<li>${mdInline(m[1])}</li>`); continue; }
+    ul = null;
+    if ((m = l.match(/^(#{1,6})\s+(.*)$/))) { const h = Math.min(3, m[1].length); out.push(`<div class="h${h}">${mdInline(m[2])}</div>`); continue; }
+    if (/^\s*(---|\*\*\*)\s*$/.test(l)) { out.push('<div><br></div>'); continue; }
+    out.push(l ? `<div>${mdInline(l.replace(/^>\s?/, ''))}</div>` : '<div><br></div>');
+  }
+  return out.map(x => Array.isArray(x) ? `<ul>${x.join('')}</ul>` : x).join('');
+}
+mdInput.addEventListener('change', () => {
+  const f = mdInput.files && mdInput.files[0]; if (!f || !ed) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    const html = mdToHtml(String(rd.result));
+    const only = ed.children.length === 1 && !ed.textContent.trim();
+    if (only) ed.innerHTML = html; else ed.insertAdjacentHTML('beforeend', html);
+    normalize(); schedule(); toast('Markdown importé');
+  };
+  rd.readAsText(f);
+});
 fileInput.addEventListener('change', () => {
   const f = fileInput.files && fileInput.files[0];
   if (!f || !ed) return;
@@ -634,7 +799,7 @@ async function contextMenu(card) {
     }
     return;
   }
-  if (i === 0) go({ v: 'editor', id }, id);
+  if (i === 0) A.open(id);
   if (i === 1) {
     const name = await dialog({ title: 'Renommer la note', input: titleOf(n) === 'Nouvelle note' ? '' : titleOf(n), ok: 'Enregistrer' });
     if (name) { renameNote(n, name); render(); }
@@ -648,9 +813,13 @@ ov.addEventListener('mousedown', e => { if (ed && document.activeElement === ed 
 function menu(anchor, items) {
   return new Promise(res => {
     const r = anchor.getBoundingClientRect();
-    const html = `<div class="menu" style="top:${r.top}px;right:${innerWidth - r.right}px">` + items.map((it, i) =>
-      `<div class="mi ${it.red ? 'red' : ''}" data-i="${i}">${it.check !== undefined ? `<span class="chk">${it.check ? I.checkS : ''}</span>` : ''}${it.icon || ''}<span class="t">${esc(it.label)}${it.sub ? `<span class="s">${esc(it.sub)}</span>` : ''}</span>${it.chev ? I.chevR : ''}</div>`
-    ).join('') + '</div>';
+    let k = 0;
+    const html = `<div class="menu" style="top:${r.top}px;right:${innerWidth - r.right}px">` + items.map(it => {
+      if (it.sep) return '<div class="msep"></div>';
+      if (it.head) return `<div class="mhead">${esc(it.head)}</div>`;
+      if (it.row) return `<div class="mrow">${it.row.map(b => `<div class="mrb" data-i="${k++}">${b.icon}<span>${esc(b.label)}</span></div>`).join('')}</div><div class="msep"></div>`;
+      return `<div class="mi ${it.red ? 'red' : ''}" data-i="${k++}">${it.check !== undefined ? `<span class="chk">${it.check ? I.checkS : ''}</span>` : ''}${it.icon || ''}<span class="t">${esc(it.label)}${it.sub ? `<span class="s">${esc(it.sub)}</span>` : ''}</span>${it.chev ? I.chevR : ''}</div>`;
+    }).join('') + '</div>';
     openOverlay(html);
     const m = ov.querySelector('.menu'), mr = m.getBoundingClientRect();
     m.style.setProperty('--sx', (r.width / mr.width).toFixed(3));
@@ -659,7 +828,7 @@ function menu(anchor, items) {
     m.classList.add('morph');
     anchor.style.visibility = 'hidden'; menuAnchor = anchor;
     ovDone = res;
-    ov.querySelectorAll('.mi').forEach(el => el.addEventListener('click', () => closeOverlay(+el.dataset.i)));
+    ov.querySelectorAll('.mi,.mrb').forEach(el => el.addEventListener('click', () => closeOverlay(+el.dataset.i)));
   });
 }
 function sheet(title, items) {
@@ -672,11 +841,11 @@ function sheet(title, items) {
     ov.querySelectorAll('.sb').forEach(el => el.addEventListener('click', () => closeOverlay(+el.dataset.i < 0 ? null : +el.dataset.i)));
   });
 }
-function dialog({ title, msg, input, ok = 'OK', red, noCancel }) {
+function dialog({ title, msg, input, ok = 'OK', red, noCancel, pass, cancel = 'Annuler' }) {
   return new Promise(res => {
     const html = `<div class="dlg"><div class="dt">${esc(title)}</div>${msg ? `<div class="dm">${esc(msg)}</div>` : ''}
-      ${input !== undefined ? `<input id="dlgIn" value="${esc(input)}" maxlength="60">` : '<div style="height:14px"></div>'}
-      <div class="db">${noCancel ? '' : '<button data-r="0">Annuler</button>'}<button data-r="1" class="${red ? 'red' : ''}">${esc(ok)}</button></div></div>`;
+      ${input !== undefined ? `<input id="dlgIn" value="${esc(input)}" maxlength="60" ${pass ? 'type="password" inputmode="numeric" style="text-align:center;letter-spacing:6px"' : ''}>` : '<div style="height:14px"></div>'}
+      <div class="db">${noCancel ? '' : `<button data-r="0">${esc(cancel)}</button>`}<button data-r="1" class="${red ? 'red' : ''}">${esc(ok)}</button></div></div>`;
     openOverlay(html, true);
     ovDone = res;
     const inp = document.getElementById('dlgIn');
@@ -822,6 +991,20 @@ const swEnd = () => {
 app.addEventListener('pointerup', swEnd);
 app.addEventListener('pointercancel', swEnd);
 
+const restoreInput = document.createElement('input'); restoreInput.type = 'file'; restoreInput.accept = '*/*'; restoreInput.hidden = true; document.body.appendChild(restoreInput);
+restoreInput.addEventListener('change', () => {
+  const f = restoreInput.files && restoreInput.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = async () => {
+    let d; try { d = JSON.parse(rd.result); } catch (e) { }
+    if (!d || !Array.isArray(d.notes) || !Array.isArray(d.folders)) { dialog({ title: 'Fichier invalide', ok: 'OK', noCancel: true }); return; }
+    const ok = await dialog({ title: 'Restaurer la sauvegarde ?', msg: `${d.notes.length} notes. Vos notes actuelles seront remplacées.`, ok: 'Restaurer', red: true });
+    if (!ok) return;
+    localStorage.setItem(KEY, JSON.stringify(d)); db = load(); toast('Sauvegarde restaurée'); render();
+  };
+  rd.readAsText(f);
+});
+
 /* ================= swipe back (iOS) ================= */
 let bk = null;
 app.addEventListener('pointerdown', e => {
@@ -892,7 +1075,7 @@ function newNote() {
   if (r.v === 'list' && r.id !== 'trash') fid = r.id;
   if (r.v === 'editor' && edNote) fid = edNote.folderId;
   const now = Date.now();
-  const n = { id: uid(), folderId: fid, html: '<div class="h1"><br></div>', text: '', created: now, modified: now, deleted: null };
+  const n = { id: uid(), folderId: fid, html: `<div${db.settings.start ? ` class="${db.settings.start}"` : ''}><br></div>`, text: '', created: now, modified: now, deleted: null };
   db.notes.push(n);
   if (r.v === 'editor') { leaveEditor(); stack[stack.length - 1] = { v: 'editor', id: n.id, focus: true }; render(1); }
   else go({ v: 'editor', id: n.id, focus: true });
@@ -980,6 +1163,7 @@ const A = {
       if (i !== null) render();
       return;
     }
+    if (n.locked && !unlocked.has(id)) { if (!(await askCode('Note verrouillée'))) return; unlocked.add(id); }
     go({ v: 'editor', id }, id);
   },
   async listMenu(_, el) {
@@ -1033,6 +1217,39 @@ const A = {
     if (i !== null) { db.settings.sort = keys[i]; persist(); render(); }
   },
   toggleGroup() { db.settings.group = !db.settings.group; persist(); render(); },
+  async pickStart() {
+    const K = Object.keys(STARTS);
+    const i = await sheet('Les notes commencent par', K.map(k => ({ label: STARTS[k] + ((db.settings.start || '') === k ? '  ✓' : '') })));
+    if (i !== null) { db.settings.start = K[i]; persist(); render(); }
+  },
+  async pickCk() {
+    const K = Object.keys(CKS);
+    const i = await sheet('Trier les éléments cochés', K.map(k => ({ label: CKS[k] + ((db.settings.ck || 'manual') === k ? '  ✓' : '') })));
+    if (i !== null) { db.settings.ck = K[i]; persist(); render(); }
+  },
+  async backup() {
+    const i = await sheet('Sauvegarde', [{ label: 'Exporter une sauvegarde' }, { label: 'Restaurer une sauvegarde' }]);
+    if (i === 0) {
+      const name = 'Notes-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json', data = JSON.stringify(db);
+      if (window.Android && Android.saveFile) { const ok = Android.saveFile(name, data); toast(ok ? 'Enregistrée dans Téléchargements' : 'Échec de l\'export'); }
+      else { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' })); a.download = name; a.click(); }
+    }
+    if (i === 1) { restoreInput.value = ''; restoreInput.click(); }
+  },
+  async storage() {
+    const bytes = (localStorage.getItem(KEY) || '').length * 2;
+    const imgs = db.notes.reduce((a, n) => a + ((n.html || '').match(/<img/g) || []).length, 0);
+    const i = await sheet(`${live().length} notes · ${db.folders.length} dossiers · ${imgs} image${imgs > 1 ? 's' : ''}\n${(bytes / 1048576).toFixed(2)} Mo utilisés`, [{ label: 'Vider Récemment supprimées', red: true }]);
+    if (i === 0) A.emptyTrash();
+  },
+  async lockSettings() {
+    if (!db.settings.code) { if (await setCode()) { toast('Code créé'); render(); } return; }
+    const i = await sheet('Verrouiller les notes', [{ label: 'Modifier le code' }, { label: 'Désactiver le code', red: true }]);
+    if (i === null || !(await askCode('Code actuel'))) return;
+    if (i === 0 && (await setCode())) toast('Code modifié');
+    if (i === 1) { db.settings.code = ''; db.notes.forEach(n => n.locked = false); persist(); toast('Verrouillage désactivé'); }
+    render();
+  },
   async emptyTrash() {
     if (!trash().length) return;
     const ok = await dialog({ title: 'Tout supprimer ?', msg: 'Les notes de Récemment supprimées seront effacées définitivement.', ok: 'Supprimer', red: true });
@@ -1046,16 +1263,54 @@ const A = {
     if (edNote) shareNote(edNote);
   },
   async noteMenu(_, el) {
-    const i = await menu(el, [{ icon: I.move, label: 'Déplacer la note' }, { icon: I.trash, label: 'Supprimer', red: true }]);
-    if (i === 0) { saveNote(); await moveNotes([edNote.id]); }
-    if (i === 1) {
-      saveNote();
-      const n = edNote;
+    saveNote();
+    const n = edNote; if (!n) return;
+    const MATH = { insert: 'Insérer le résultat', suggest: 'Suggérer le résultat', off: 'Désactivé' };
+    const i = await menu(el, [
+      { row: [{ icon: I.scan, label: 'Scanner' }, { icon: I.pin, label: n.pinned ? 'Désépingler' : 'Épingler' }, { icon: I.lock, label: n.locked ? 'Déverrouiller' : 'Verrouiller' }] },
+      { icon: I.search, label: 'Rechercher dans la note' },
+      { icon: I.folderM, label: 'Déplacer la note' },
+      { icon: I.summary, label: 'Résumer' },
+      { icon: I.sliders, label: 'Options de la note', chev: true },
+      { icon: I.eqc, label: 'Résultats mathématiques', sub: MATH[db.settings.math], chev: true },
+      { icon: I.filedown, label: 'Importer Markdown' },
+      { sep: true },
+      { icon: I.trash, label: 'Supprimer', red: true }
+    ]);
+    if (i === null) return;
+    if (i === 0) { attach(true); }
+    if (i === 1) { n.pinned = !n.pinned; persist(); toast(n.pinned ? 'Note épinglée' : 'Note désépinglée'); }
+    if (i === 2) {
+      if (n.locked) { n.locked = false; persist(); toast('Note déverrouillée'); }
+      else {
+        if (!db.settings.code) { if (!(await setCode())) return; }
+        n.locked = true; unlocked.add(n.id); persist(); toast('Note verrouillée');
+      }
+    }
+    if (i === 3) openFind();
+    if (i === 4) { await moveNotes([n.id]); }
+    if (i === 5) summarize(n);
+    if (i === 6) {
+      const P = ['none', 'lines', 'grid'], L = ['Aucune', 'Lignes', 'Grille'];
+      const j = await menu(el, [{ head: 'Lignes et grilles' }].concat(P.map((p, k) => ({ label: L[k], check: (n.paper || 'none') === p }))));
+      if (j !== null) { n.paper = P[j]; persist(); const w = $v('#edwrap'); w.className = 'edwrap paper-' + n.paper; }
+    }
+    if (i === 7) {
+      const K = Object.keys(MATH);
+      const j = await menu(el, K.map(k => ({ label: MATH[k], check: db.settings.math === k })));
+      if (j !== null) { db.settings.math = K[j]; persist(); mathCheck(); }
+    }
+    if (i === 8) importMd();
+    if (i === 9) {
       if (isEmptyNote(n)) { pop(); return; }
       if (!(await confirmDelete())) return;
       trashNotes([n.id]); edNote = null; ed = null; pop();
     }
   },
+  findNext() { if (!findRanges.length) return; findIdx = (findIdx + 1) % findRanges.length; paintFind(); },
+  findPrev() { if (!findRanges.length) return; findIdx = (findIdx - 1 + findRanges.length) % findRanges.length; paintFind(); },
+  findClose() { closeFind(); },
+  mathInsert() { if (mathVal === null) return; restoreRange(); document.execCommand('insertText', false, ' ' + mathVal); mathVal = null; $v('#mathchip').classList.remove('on'); },
   tChecklist: toggleChecklist,
   tAttach: attach,
   async tTable(_, el) {

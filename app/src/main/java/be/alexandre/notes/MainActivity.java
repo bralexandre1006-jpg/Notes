@@ -20,6 +20,7 @@ public class MainActivity extends Activity {
     private static final int FILE_REQ = 42;
     private WebView web;
     private ValueCallback<Uri[]> fileCb;
+    private Uri camUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,11 +60,27 @@ public class MainActivity extends Activity {
             public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams p) {
                 if (fileCb != null) fileCb.onReceiveValue(null);
                 fileCb = cb;
+                String[] at = p.getAcceptTypes();
+                String type = (at != null && at.length > 0 && at[0] != null && at[0].contains("/")) ? at[0] : "*/*";
                 Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                 i.addCategory(Intent.CATEGORY_OPENABLE);
-                i.setType("image/*");
+                i.setType(type);
+                Intent chooser = Intent.createChooser(i, type.startsWith("image") ? "Ajouter une image" : "Choisir un fichier");
+                camUri = null;
+                if (type.startsWith("image") && p.isCaptureEnabled()) {
+                    try {
+                        android.content.ContentValues v = new android.content.ContentValues();
+                        v.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "Scan_" + System.currentTimeMillis() + ".jpg");
+                        v.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
+                        camUri = getContentResolver().insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, v);
+                        Intent cam = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        cam.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, camUri);
+                        cam.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        chooser = cam;
+                    } catch (Exception e) { camUri = null; }
+                }
                 try {
-                    startActivityForResult(Intent.createChooser(i, "Ajouter une image"), FILE_REQ);
+                    startActivityForResult(chooser, FILE_REQ);
                 } catch (Exception e) {
                     fileCb = null;
                     return false;
@@ -80,6 +97,9 @@ public class MainActivity extends Activity {
         if (req == FILE_REQ && fileCb != null) {
             Uri[] r = null;
             if (res == RESULT_OK && data != null && data.getData() != null) r = new Uri[]{data.getData()};
+            else if (res == RESULT_OK && camUri != null) r = new Uri[]{camUri};
+            else if (camUri != null) { try { getContentResolver().delete(camUri, null, null); } catch (Exception ignored) { } }
+            camUri = null;
             fileCb.onReceiveValue(r);
             fileCb = null;
             return;
@@ -101,6 +121,26 @@ public class MainActivity extends Activity {
     }
 
     class Bridge {
+        @JavascriptInterface
+        public boolean saveFile(String name, String content) {
+            try {
+                byte[] data = content.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                if (android.os.Build.VERSION.SDK_INT >= 29) {
+                    android.content.ContentValues v = new android.content.ContentValues();
+                    v.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, name);
+                    v.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/json");
+                    v.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS);
+                    Uri u = getContentResolver().insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+                    if (u == null) return false;
+                    try (java.io.OutputStream o = getContentResolver().openOutputStream(u)) { o.write(data); }
+                } else {
+                    java.io.File f = new java.io.File(getExternalFilesDir(null), name);
+                    try (java.io.FileOutputStream o = new java.io.FileOutputStream(f)) { o.write(data); }
+                }
+                return true;
+            } catch (Exception e) { return false; }
+        }
+
         @JavascriptInterface
         public void haptic() {
             runOnUiThread(() -> web.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS));
