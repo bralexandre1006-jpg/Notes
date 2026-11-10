@@ -10,15 +10,28 @@ button{font:inherit;color:inherit;background:none;border:0;outline:0}
 svg{display:block}
 #app{position:fixed;inset:0;background:#000;transform-origin:50% 0;transition:transform .4s cubic-bezier(.32,.72,0,1),border-radius .4s,filter .4s}
 #app.behind{transform:scale(.92) translateY(14px);border-radius:24px;overflow:hidden;filter:brightness(.55)}
-.view{position:absolute;inset:0;display:flex;flex-direction:column;background:#000}
-.in-r{animation:inR .4s cubic-bezier(.32,.72,0,1) both;box-shadow:-12px 0 30px rgba(0,0,0,.6)}
-.out-l{animation:outL .4s cubic-bezier(.32,.72,0,1) both}
-.in-l{animation:inL .4s cubic-bezier(.32,.72,0,1) both}
-.out-r{animation:outR .4s cubic-bezier(.32,.72,0,1) both;box-shadow:-12px 0 30px rgba(0,0,0,.6)}
-@keyframes inR{from{transform:translateX(100%)}to{transform:none}}
-@keyframes outL{from{transform:none}to{transform:translateX(-28%);filter:brightness(.55)}}
-@keyframes inL{from{transform:translateX(-28%);filter:brightness(.55)}to{transform:none;filter:none}}
-@keyframes outR{from{transform:none}to{transform:translateX(100%)}}
+.view{position:absolute;inset:0;display:flex;flex-direction:column;background:#000;will-change:transform;backface-visibility:hidden}
+.hdr{position:relative}
+.htitle{position:absolute;left:76px;right:76px;bottom:0;height:44px;line-height:44px;text-align:center;font-size:18px;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;pointer-events:none}
+.scrolled .htitle{opacity:1;transform:none}
+.scrolled .hdr::after{content:"";position:absolute;left:0;right:0;bottom:-14px;height:14px;background:linear-gradient(#000,rgba(0,0,0,0));z-index:2;pointer-events:none}
+.sw{position:relative;margin-bottom:12px;transition:height .3s cubic-bezier(.2,.9,.3,1),margin .3s,opacity .2s}
+.sw.gone{height:0!important;margin-bottom:0;opacity:0;overflow:hidden}
+.sw .ncard{margin-bottom:0;position:relative;z-index:1;touch-action:pan-y}
+.swa{position:absolute;right:4px;top:0;bottom:0;display:flex;align-items:center;gap:12px;opacity:0;transform-origin:right center}
+.swb{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff}
+.swb.mv{background:#5e5ce6}
+.swb.del{background:var(--red)}
+.swb.pr{opacity:.7}
+.in-r{animation:inR .56s cubic-bezier(.2,.9,.3,1) both;box-shadow:-12px 0 30px rgba(0,0,0,.6)}
+.out-l{animation:outL .56s cubic-bezier(.2,.9,.3,1) both}
+.in-l{animation:inL .5s cubic-bezier(.2,.9,.3,1) both}
+.out-r{animation:outR .5s cubic-bezier(.2,.9,.3,1) both;box-shadow:-12px 0 30px rgba(0,0,0,.6)}
+@keyframes inR{from{transform:translate3d(100%,0,0)}to{transform:translate3d(0,0,0)}}
+@keyframes outL{from{transform:translate3d(0,0,0);opacity:1}to{transform:translate3d(-30%,0,0);opacity:.55}}
+@keyframes inL{from{transform:translate3d(-30%,0,0);opacity:.55}to{transform:translate3d(0,0,0);opacity:1}}
+@keyframes outR{from{transform:translate3d(0,0,0)}to{transform:translate3d(100%,0,0)}}
 
 /* press feedback */
 .ncard,.row,.cb,.pill,.compose,.ok,.mi,.sb,.fcard,.cb2{transition:background-color .25s,opacity .25s,transform .2s}

@@ -106,7 +106,7 @@ let selected = new Set();
 let ed = null, edNote = null, saveT = null, savedRange = null, newCk = false;
 
 const cur = () => stack[stack.length - 1];
-function go(r) { const sc = view && view.querySelector('.scroll'); cur().scroll = sc ? sc.scrollTop : 0; leaveEditor(); stack.push(r); query = ''; selMode = false; selected.clear(); render(1); }
+function go(r, hl) { cur().hl = hl; const sc = view && view.querySelector('.scroll'); cur().scroll = sc ? sc.scrollTop : 0; leaveEditor(); stack.push(r); query = ''; selMode = false; selected.clear(); render(1); }
 function pop() { leaveEditor(); if (stack.length > 1) stack.pop(); query = ''; selMode = false; selected.clear(); render(-1); }
 
 window.onBack = function () {
@@ -147,8 +147,15 @@ function render(dir) {
     else {
       app.insertBefore(nv, old); nv.classList.add('in-l'); old.classList.add('out-r');
       const sc = nv.querySelector('.scroll'); if (sc && r.scroll) sc.scrollTop = r.scroll;
+      const h = r.hl && nv.querySelector(`.ncard[data-id="${r.hl}"],.row[data-id="${r.hl}"]`);
+      if (h) { h.classList.add('pr'); setTimeout(() => h.classList.remove('pr'), 380); }
     }
-    setTimeout(() => { old.remove(); nv.classList.remove('in-r', 'in-l'); }, 420);
+    setTimeout(() => { old.remove(); nv.classList.remove('in-r', 'in-l'); }, 600);
+  }
+  const sc = nv.querySelector('.scroll');
+  if (sc) {
+    const upd = () => nv.classList.toggle('scrolled', sc.scrollTop > 44);
+    sc.addEventListener('scroll', upd, { passive: true }); upd();
   }
   bindSearch();
   if (r.v === 'editor') setupEditor(r.focus, dir > 0);
@@ -178,11 +185,12 @@ function noteCard(n) {
   const sort = db.settings.sort, t = sort === 'created' ? n.created : n.modified;
   const img = imgOf(n);
   const sel = selMode ? `<div class="sel ${selected.has(n.id) ? 'on' : ''}">${selected.has(n.id) ? I.checkS : ''}</div>` : '';
-  return `<div class="ncard" data-a="open" data-id="${n.id}">${sel}
+  const swipe = !selMode && !n.deleted;
+  return `<div class="sw">${swipe ? `<div class="swa"><button class="swb mv" data-a="swMove" data-id="${n.id}">${I.move}</button><button class="swb del" data-a="swDel" data-id="${n.id}">${I.trash}</button></div>` : ''}<div class="ncard${swipe ? ' swp' : ''}" data-a="open" data-id="${n.id}">${sel}
     <div class="b"><div class="nt">${esc(titleOf(n))}</div>
     <div class="n2"><span class="d">${shortDate(n.deleted || t)}</span>${esc(previewOf(n))}</div>
     <div class="n3">${I.folderS}${esc(folderOf(n.folderId).name)}</div></div>
-    ${img ? `<img class="thumb" src="${img}">` : ''}</div>`;
+    ${img ? `<img class="thumb" src="${img}">` : ''}</div></div>`;
 }
 function sortNotes(arr) {
   const s = db.settings.sort;
@@ -207,7 +215,7 @@ function notesBlock(arr, trashMode) {
 
 /* ---------- folders view ---------- */
 function vFolders() {
-  return `<div class="hdr"><span></span><div class="r">
+  return `<div class="hdr"><div class="htitle">Dossiers</div><span></span><div class="r">
       <button class="cb" data-a="newFolder">${I.folderPlus}</button>
       ${folderEdit ? `<button class="ok" data-a="toggleFolderEdit">${I.check}</button>` : `<button class="pill" data-a="toggleFolderEdit">Modifier</button>`}</div></div>
     <div class="scroll" id="content">${foldersContent()}</div>
@@ -248,7 +256,7 @@ function vList(id) {
       <button class="pill ${dis}" data-a="${isTrash ? 'selRestore' : 'selMove'}">${isTrash ? 'Restaurer' : 'Déplacer'}</button>
       <button class="pill ${dis}" data-a="selDelete" style="color:var(--red)">Supprimer</button></div>`;
   } else bottom = bottomSearch(!isTrash);
-  return `<div class="hdr"><button class="cb" data-a="back">${I.back}</button><div class="r">${right}</div></div>
+  return `<div class="hdr"><div class="htitle">${esc(isTrash ? 'Récemment supprimées' : folderOf(id).name)}</div><button class="cb" data-a="back">${I.back}</button><div class="r">${right}</div></div>
     <div class="scroll" id="content">${listContent(id)}</div>${bottom}`;
 }
 function listContent(id) {
@@ -265,7 +273,7 @@ function listContent(id) {
 /* ---------- settings ---------- */
 const SORTS = { modified: 'Modification', created: 'Création', title: 'Titre' };
 function vSettings() {
-  return `<div class="hdr"><button class="cb" data-a="back">${I.back}</button><span></span></div>
+  return `<div class="hdr"><div class="htitle">Paramètres</div><button class="cb" data-a="back">${I.back}</button><span></span></div>
   <div class="scroll set">
     <h1>Paramètres</h1><div style="height:24px"></div>
     <div class="group">
@@ -602,8 +610,51 @@ document.addEventListener('pointerdown', e => {
   el.classList.add('pr');
 }, true);
 document.addEventListener('pointermove', e => { if (pressed && Math.hypot(e.clientX - pressX, e.clientY - pressY) > 8) unpress(0); }, true);
-document.addEventListener('pointerup', () => unpress(180), true);
+document.addEventListener('pointerup', () => unpress(260), true);
 document.addEventListener('pointercancel', () => unpress(0), true);
+
+/* ================= swipe on notes ================= */
+let openSw = null, noClickUntil = 0, sw = null;
+const SW_OPEN = -148;
+function setX(card, x, anim) {
+  card.style.transition = anim ? 'transform .45s cubic-bezier(.2,.9,.3,1)' : 'none';
+  card.style.transform = x ? `translate3d(${x}px,0,0)` : '';
+  const a = card.parentElement.querySelector('.swa');
+  if (a) { a.style.transition = card.style.transition; a.style.opacity = Math.min(1, -x / 90); a.style.transform = `scale(${Math.min(1, .6 + (-x / 148) * .4)})`; }
+}
+function closeSw() { if (openSw) { setX(openSw, 0, true); openSw = null; } }
+app.addEventListener('pointerdown', e => {
+  const card = e.target.closest('.ncard.swp');
+  if (!card) { return; }
+  sw = { card, x0: e.clientX, y0: e.clientY, base: card === openSw ? SW_OPEN : 0, on: false, dead: false, lx: e.clientX, lt: Date.now(), v: 0 };
+  if (openSw && openSw !== card) closeSw();
+});
+app.addEventListener('pointermove', e => {
+  if (!sw || sw.dead) return;
+  const dx = e.clientX - sw.x0, dy = e.clientY - sw.y0;
+  if (!sw.on) {
+    if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { sw.dead = true; return; }
+    if (Math.abs(dx) > 10) { sw.on = true; unpress(0); }
+    else return;
+  }
+  const now = Date.now(); sw.v = (e.clientX - sw.lx) / Math.max(1, now - sw.lt); sw.lx = e.clientX; sw.lt = now;
+  let x = sw.base + dx;
+  if (x > 0) x = x / 4;
+  setX(sw.card, x, false);
+  sw.x = x;
+});
+const swEnd = () => {
+  if (!sw) return;
+  const s = sw; sw = null;
+  if (!s.on) return;
+  noClickUntil = Date.now() + 350;
+  const x = s.x || 0, W = s.card.offsetWidth;
+  if (x < -W * 0.6) { setX(s.card, -W - 40, true); setTimeout(() => A.swDel(s.card.dataset.id, s.card), 200); return; }
+  if (x < -60 || s.v < -0.5) { setX(s.card, SW_OPEN, true); openSw = s.card; }
+  else { setX(s.card, 0, true); if (openSw === s.card) openSw = null; }
+};
+app.addEventListener('pointerup', swEnd);
+app.addEventListener('pointercancel', swEnd);
 
 /* ================= actions ================= */
 function newNote() {
@@ -649,7 +700,7 @@ const A = {
   },
   toggleFolderEdit() { folderEdit = !folderEdit; render(); },
   toggleCollapse() { db.ui.collapsed = !db.ui.collapsed; persist(); render(); },
-  openFolder: id => go({ v: 'list', id }),
+  openFolder: id => go({ v: 'list', id }, id),
   openTrash: () => go({ v: 'list', id: 'trash' }),
   openSettings: () => go({ v: 'settings' }),
   async renameFolder(id) {
@@ -680,7 +731,7 @@ const A = {
       if (i !== null) render();
       return;
     }
-    go({ v: 'editor', id });
+    go({ v: 'editor', id }, id);
   },
   async listMenu(_, el) {
     const id = cur().id;
@@ -703,6 +754,14 @@ const A = {
     }
     if (i === 2) go({ v: 'settings' });
   },
+  swDel(id, el) {
+    const w = el.closest('.sw');
+    trashNotes([id]); openSw = null;
+    w.style.height = w.offsetHeight + 'px'; void w.offsetHeight;
+    w.classList.add('gone');
+    setTimeout(() => render(), 320);
+  },
+  async swMove(id) { closeSw(); if (await moveNotes([id])) render(); },
   endSel() { selMode = false; selected.clear(); render(); },
   async selMove() {
     if (!selected.size) return;
@@ -767,7 +826,9 @@ const A = {
 };
 
 app.addEventListener('click', e => {
+  if (Date.now() < noClickUntil) { e.stopPropagation(); return; }
   const el = e.target.closest('[data-a]');
+  if (openSw && !(el && el.classList.contains('swb'))) { closeSw(); if (!el || el.classList.contains('ncard')) return; }
   if (!el || !app.contains(el)) return;
   const f = A[el.dataset.a];
   if (f) f(el.dataset.id, el, e);
