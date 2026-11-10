@@ -69,10 +69,10 @@ public class MainActivity extends Activity {
                 camUri = null;
                 if (type.startsWith("image") && p.isCaptureEnabled()) {
                     try {
-                        android.content.ContentValues v = new android.content.ContentValues();
-                        v.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "Scan_" + System.currentTimeMillis() + ".jpg");
-                        v.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
-                        camUri = getContentResolver().insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, v);
+                        android.content.ContentValues cv = new android.content.ContentValues();
+                        cv.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "Scan_" + System.currentTimeMillis() + ".jpg");
+                        cv.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
+                        camUri = getContentResolver().insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv);
                         Intent cam = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                         cam.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, camUri);
                         cam.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
