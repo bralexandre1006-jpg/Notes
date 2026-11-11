@@ -360,3 +360,20 @@ h2{font-size:23px;font-weight:700;margin:30px 0 14px}
 
 #ed,#ed *{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 #ed .box{-webkit-user-select:none;user-select:none}
+
+/* compact format bar */
+.fbox{left:12px;right:12px;bottom:calc(8px + var(--sb));padding:5px 8px;border-radius:26px}
+.frow{height:44px}
+.frow button{height:44px}
+.frow svg{width:24px;height:24px}
+.frow .aa{width:44px;height:44px;font-size:22px}
+.seg{margin:1px 0 6px;border-radius:22px;padding:2px}
+.seg button{height:34px;border-radius:18px;padding:0 6px}
+.seg-ind{height:34px;top:2px;left:2px;border-radius:18px}
+.sg-h1{font-size:17px}
+.sg-h2{font-size:14.5px}
+.sg-h3{font-size:11px}
+.sg-body{font-size:16px}
+.seg2 button{font-size:16px}
+.seg2 button[data-id="mono"]{font-size:14px!important}
+.mathchip{bottom:calc(120px + var(--sb))}

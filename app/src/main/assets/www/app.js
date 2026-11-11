@@ -430,7 +430,7 @@ function syncBar() {
   let act = null;
   view.querySelectorAll('.fpanel [data-a="seg"]').forEach(x => { const on = x.dataset.id === k; x.classList.toggle('on', on); if (on && x.closest('.segs')) act = x; });
   const ind = $v('.seg-ind');
-  if (ind) { if (act) { ind.style.width = act.offsetWidth + 'px'; ind.style.transform = `translateX(${act.offsetLeft - 3}px)`; ind.style.opacity = 1; } else ind.style.opacity = 0; }
+  if (ind) { if (act) { ind.style.width = act.offsetWidth + 'px'; ind.style.transform = `translateX(${act.offsetLeft - 2}px)`; ind.style.opacity = 1; } else ind.style.opacity = 0; }
   ['bold', 'italic', 'underline', 'strikeThrough'].forEach(c => { const x = view.querySelector(`[data-a="inl"][data-id="${c}"]`); if (x) x.classList.toggle('on', document.queryCommandState(c) && !(c === 'bold' && /h[123]/.test(k))); });
   const intable = !!cellOf();
   const tb = $v('#tbBtn'), ck = $v('#ckBtn');
