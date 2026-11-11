@@ -378,7 +378,7 @@ function setupEditor(focus, animated) {
   normalize();
   ed.addEventListener('focus', () => editing(true));
   ed.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== ed) editing(false); }, 50));
-  ed.addEventListener('input', () => { normalize(); schedule(); mathCheck(); });
+  ed.addEventListener('input', () => { normalize(); schedule(); mathCheck(); keepVisible(); });
   ed.addEventListener('keydown', onKey);
   ed.addEventListener('mousedown', e => { if (e.target.classList.contains('box')) e.preventDefault(); });
   ed.addEventListener('click', e => {
@@ -395,7 +395,7 @@ function setupEditor(focus, animated) {
 function keepRange() {
   if (!ed) return;
   const s = getSelection();
-  if (s.rangeCount && ed.contains(s.anchorNode)) { savedRange = s.getRangeAt(0).cloneRange(); syncBar(); }
+  if (s.rangeCount && ed.contains(s.anchorNode)) { savedRange = s.getRangeAt(0).cloneRange(); syncBar(); if (s.isCollapsed) keepVisible(); }
 }
 function blockOf(n) {
   if (!ed || !n || !ed.contains(n) || n === ed) return null;
@@ -408,6 +408,23 @@ function cellOf() {
   const td = n && n.closest && n.closest('td');
   return td && ed && ed.contains(td) ? td : null;
 }
+let kvT = null;
+function keepVisible() {
+  clearTimeout(kvT);
+  kvT = setTimeout(() => {
+    if (!ed || document.activeElement !== ed) return;
+    const s = getSelection(); if (!s.rangeCount) return;
+    const r = s.getRangeAt(0).cloneRange(); r.collapse(false);
+    let rect = r.getClientRects()[0] || r.getBoundingClientRect();
+    if (!rect || (!rect.top && !rect.bottom)) { const b = blockOf(s.anchorNode); if (!b) return; rect = b.getBoundingClientRect(); }
+    const w = $v('#edwrap'), fb = $v('#fbar'), hd = view.querySelector('.edhdr');
+    const bottomLimit = (fb && fb.style.display !== 'none' ? fb.getBoundingClientRect().top : innerHeight) - 24;
+    const topLimit = (hd ? hd.getBoundingClientRect().bottom : 90) + 8;
+    if (rect.bottom > bottomLimit) w.scrollBy({ top: rect.bottom - bottomLimit + 40, behavior: 'smooth' });
+    else if (rect.top < topLimit) w.scrollBy({ top: rect.top - topLimit - 40, behavior: 'smooth' });
+  }, 30);
+}
+addEventListener('resize', keepVisible);
 function syncBar() {
   const b = blockOf(getSelection().anchorNode), k = b ? (['h1', 'h2', 'h3', 'mono'].find(c => b.classList.contains(c)) || '') : '';
   let act = null;
@@ -763,7 +780,7 @@ const lpCancel = () => { if (lp) { clearTimeout(lp.t); lp = null; } };
 app.addEventListener('pointermove', e => { if (lp && Math.hypot(e.clientX - lp.x0, e.clientY - lp.y0) > 8) lpCancel(); });
 app.addEventListener('pointerup', lpCancel);
 app.addEventListener('pointercancel', lpCancel);
-app.addEventListener('contextmenu', e => e.preventDefault());
+app.addEventListener('contextmenu', e => { if (!e.target.closest('#ed,input,textarea')) e.preventDefault(); });
 
 async function contextMenu(card) {
   const id = card.dataset.id, n = db.notes.find(x => x.id === id);
@@ -1334,7 +1351,7 @@ const A = {
   inl: k => inline(k),
   undo() { if (ed) { ed.focus(); document.execCommand('undo'); schedule(); } },
   tList: () => inline('insertUnorderedList'),
-  tFormat() { keepRange(); $v('#fbar').classList.toggle('open'); syncBar(); }
+  tFormat() { keepRange(); $v('#fbar').classList.toggle('open'); syncBar(); setTimeout(keepVisible, 340); }
 };
 app.addEventListener('click', e => {
   if (Date.now() < noClickUntil) { e.stopPropagation(); return; }
