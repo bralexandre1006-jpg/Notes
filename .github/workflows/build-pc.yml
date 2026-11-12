@@ -1,0 +1,47 @@
+name: Build PC
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Installer
+        working-directory: desktop
+        run: |
+          npm ci
+          npm version 1.0.${{ github.run_number }} --no-git-tag-version --allow-same-version
+
+      - name: Build Windows
+        working-directory: desktop
+        run: npm run dist
+
+      - name: Renommer
+        shell: bash
+        run: cp "desktop/dist/Notes-PC-Setup-1.0.${{ github.run_number }}.exe" "Notes-PC-v${{ github.run_number }}.exe"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Notes-PC-v${{ github.run_number }}
+          path: Notes-PC-v${{ github.run_number }}.exe
+
+      - name: Publier en Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: pc-v${{ github.run_number }}
+          name: Notes PC v1.0.${{ github.run_number }}
+          files: Notes-PC-v${{ github.run_number }}.exe

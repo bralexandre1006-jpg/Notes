@@ -14,6 +14,9 @@
 | Signature | `keystore/notes.jks` (alias `notes`) via `signingConfigs.release` dans `app/build.gradle` ; mots de passe lus depuis env `KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD` avec valeur par défaut dans le fichier (aucun secret GitHub configuré dans le workflow) |
 | Version | `versionCode = GITHUB_RUN_NUMBER`, `versionName = 1.0.<run>` |
 | Données locales | `localStorage` de la WebView, clé `notes.data.v1` (dossiers, notes, réglages, images en base64), origine `file:///android_asset/www/index.html` |
+| App PC | `desktop/` : Electron (Windows 11), réutilise `app/src/main/assets/www` (copié au build, ne pas dupliquer le code), appId `be.alexandre.notes.pc`, productName `Notes` ; pont `window.Android`/`window.Desktop` dans `preload.js` |
+| Workflow PC | `.github/workflows/build-pc.yml` : push sur `main` ou manuel → installateur NSIS → Release `pc-vN` avec `Notes-PC-vN.exe` (non signé : avertissement SmartScreen) |
+| Synchro | `www/sync.js` : Firebase Auth (e-mail/mot de passe, REST) + Realtime Database (REST + flux SSE), chemin `users/{uid}/{n|f|s}/{id}` = `{u, j}` ou tombe `{u, d:1}` ; config publique dans `www/firebase-config.js` ; état local `notes.sync.v1` et `notes.sync.shadow.v1` |
 
 ## Collaboration
 - Je décris les fonctionnalités en français ; prends en charge le technique et réponds brièvement en français.
@@ -35,6 +38,9 @@
 - Garder `setDomStorageEnabled(true)` et le `flushSave` dans `onPause`.
 - Le localStorage est limité (~5–10 Mo) et contient les images en base64 : tenir compte de la taille.
 - Nouveaux champs : valeurs par défaut via `Object.assign` dans `load()`, sans écraser l'existant.
+- Toute modification des données passe par `persist()` (qui appelle `Sync.track()`), sinon elle ne sera pas synchronisée.
+- Suppressions synchronisées par tombes : ne jamais supprimer les données distantes avec `null`.
+- PC : ne jamais changer `appId`/`productName`/`name` d'Electron (dossier des données utilisateur) ni le chargement `loadFile` de `www/index.html`.
 
 ## GitHub et compilation
 - Respecter le workflow existant ; ne pas le modifier sans nécessité expliquée.

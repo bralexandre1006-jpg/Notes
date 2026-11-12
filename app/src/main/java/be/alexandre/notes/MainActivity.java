@@ -51,6 +51,7 @@ public class MainActivity extends Activity {
         s.setDomStorageEnabled(true);
         s.setDatabaseEnabled(true);
         s.setAllowFileAccess(true);
+        s.setAllowUniversalAccessFromFileURLs(true);
         s.setTextZoom(100);
         s.setMediaPlaybackRequiresUserGesture(false);
 

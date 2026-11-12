@@ -46,7 +46,8 @@ const I = {
   up: sv('<path d="M6 15l6-6 6 6"/>', 22, 2.4),
   down: sv('<path d="M6 9l6 6 6-6"/>', 22, 2.4),
   eye: sv('<path d="M3 3l18 18M10.6 6.1A9.9 9.9 0 0 1 12 6c5 0 8.5 4 9.5 6-.5 1-1.6 2.6-3.2 3.9M6.3 7.6C4.5 8.9 3.2 10.7 2.5 12c1 2 4.5 6 9.5 6 1.6 0 3-.4 4.3-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>', 28, 1.6),
-  pencil: sv('<path d="M15.5 4.5l4 4L8 20H4v-4z"/>', 28, 1.6)
+  pencil: sv('<path d="M15.5 4.5l4 4L8 20H4v-4z"/>', 28, 1.6),
+  syncW: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 10A8 8 0 0 0 5.6 7.2L4 9M4 4.5V9h4.5M4.5 14a8 8 0 0 0 13.9 2.8L20 15M20 19.5V15h-4.5"/></svg>'
 };
 
 /* ================= data ================= */
@@ -71,7 +72,20 @@ function load() {
   return fresh();
 }
 let db = load();
+const SYNC_NS = { n: 'notes', f: 'folders' };
+if (window.Sync) Sync.attach({
+  get: () => db,
+  canApply: k => !(edNote && ed && k === 'n/' + edNote.id && document.activeElement === ed),
+  put(k, v) {
+    if (k === 's/settings') { Object.assign(db.settings, v); return; }
+    const [c, id] = k.split('/'), arr = db[SYNC_NS[c]], L = arr.find(x => x.id === id);
+    if (L) { Object.keys(L).forEach(x => delete L[x]); Object.assign(L, v); } else arr.push(v);
+  },
+  remove(k) { const [c, id] = k.split('/'); if (SYNC_NS[c]) db[SYNC_NS[c]] = db[SYNC_NS[c]].filter(x => x.id !== id); },
+  changed: keys => syncChanged(keys)
+});
 function persist() {
+  if (window.Sync) Sync.track();
   try { localStorage.setItem(KEY, JSON.stringify(db)); }
   catch (e) { dialog({ title: 'Stockage plein', msg: 'Supprimez des images ou des notes pour libérer de la place.', ok: 'OK', noCancel: true }); }
 }
@@ -139,6 +153,10 @@ window.onBack = function () {
 };
 window.flushSave = () => { if (edNote) saveNote(); };
 document.addEventListener('visibilitychange', () => { if (document.hidden) window.flushSave(); });
+if (window.Desktop) {
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') window.onBack(); });
+  document.addEventListener('mouseup', e => { if (e.button === 3) window.onBack(); });
+}
 
 /* ================= render ================= */
 let view = null;
@@ -338,6 +356,10 @@ function vSettings() {
     </div>
     <div class="foot">Déplacer automatiquement les éléments de la liste vers le bas à mesure qu'ils sont cochés.</div>
     <div class="group">
+      <div class="row" data-a="sync">${sic('linear-gradient(#34c759,#239a43)', I.syncW)}<span class="lbl">Synchronisation</span><span class="cnt">${syncLabel()}</span><span class="cnt">${I.chevR}</span></div>
+    </div>
+    <div class="foot">Retrouvez les mêmes notes sur le téléphone et le PC.</div>
+    <div class="group">
       <div class="row" data-a="backup">${sic('linear-gradient(#2f8cff,#1a6fe0)', I.cloud)}<span class="lbl">Sauvegarde</span><span class="cnt">${I.chevR}</span></div>
       <div class="row" data-a="storage">${sic('linear-gradient(#64d2ff,#3fb6ea)', I.pie)}<span class="lbl">Stockage</span><span class="cnt">${I.chevR}</span></div>
     </div>
@@ -348,6 +370,22 @@ function vSettings() {
     <div class="foot">Protégez vos notes privées avec un code.</div>
   </div>`;
 }
+
+const SYNC_ST = { off: 'Désactivée', connecting: 'Connexion…', ok: 'À jour', offline: 'Hors ligne', error: 'Erreur de synchronisation' };
+const SYNC_SH = { off: 'Désactivée', connecting: 'En cours', ok: 'Activée', offline: 'Hors ligne', error: 'Erreur' };
+function syncLabel() { return window.Sync && Sync.email() ? SYNC_SH[Sync.status()] : 'Désactivée'; }
+function syncChanged(keys) {
+  persist();
+  const r = cur();
+  if (r.v === 'editor') {
+    if (!db.notes.find(x => x.id === r.id)) { if (!ov.classList.contains('show')) pop(); return; }
+    if (keys.includes('n/' + r.id) && ed && edNote && document.activeElement !== ed) { ed.innerHTML = edNote.html || '<div class="h1"><br></div>'; normalize(); }
+    return;
+  }
+  if (ov.classList.contains('show')) return;
+  if (searching) refreshContent(true); else render();
+}
+if (window.Sync) Sync.onStatus(() => { if (cur().v === 'settings') { const c = $v('[data-a="sync"] .cnt'); if (c) c.textContent = syncLabel(); } });
 
 /* ---------- editor ---------- */
 function vEditor(id) {
@@ -765,6 +803,7 @@ function renameNote(n, name) {
 function shareNote(n) {
   const t = titleOf(n), txt = (n.text || '').trim();
   if (window.Android && Android.share) Android.share(t, txt);
+  else if (window.Desktop) navigator.clipboard.writeText(txt).then(() => toast('Note copiée dans le presse-papiers'), () => { });
   else if (navigator.share) navigator.share({ title: t, text: txt }).catch(() => { });
 }
 
@@ -860,10 +899,10 @@ function sheet(title, items) {
     ov.querySelectorAll('.sb').forEach(el => el.addEventListener('click', () => closeOverlay(+el.dataset.i < 0 ? null : +el.dataset.i)));
   });
 }
-function dialog({ title, msg, input, ok = 'OK', red, noCancel, pass, cancel = 'Annuler' }) {
+function dialog({ title, msg, input, ok = 'OK', red, noCancel, pass, type, cancel = 'Annuler' }) {
   return new Promise(res => {
     const html = `<div class="dlg"><div class="dt">${esc(title)}</div>${msg ? `<div class="dm">${esc(msg)}</div>` : ''}
-      ${input !== undefined ? `<input id="dlgIn" value="${esc(input)}" maxlength="60" ${pass ? 'type="password" inputmode="numeric" style="text-align:center;letter-spacing:6px"' : ''}>` : '<div style="height:14px"></div>'}
+      ${input !== undefined ? `<input id="dlgIn" value="${esc(input)}" maxlength="60" ${pass === 'pw' ? 'type="password"' : pass ? 'type="password" inputmode="numeric" style="text-align:center;letter-spacing:6px"' : type ? `type="${type}" autocapitalize="off"` : ''}>` : '<div style="height:14px"></div>'}
       <div class="db">${noCancel ? '' : `<button data-r="0">${esc(cancel)}</button>`}<button data-r="1" class="${red ? 'red' : ''}">${esc(ok)}</button></div></div>`;
     openOverlay(html, true);
     ovDone = res;
@@ -1019,7 +1058,7 @@ restoreInput.addEventListener('change', () => {
     if (!d || !Array.isArray(d.notes) || !Array.isArray(d.folders)) { dialog({ title: 'Fichier invalide', ok: 'OK', noCancel: true }); return; }
     const ok = await dialog({ title: 'Restaurer la sauvegarde ?', msg: `${d.notes.length} notes. Vos notes actuelles seront remplacées.`, ok: 'Restaurer', red: true });
     if (!ok) return;
-    localStorage.setItem(KEY, JSON.stringify(d)); db = load(); toast('Sauvegarde restaurée'); render();
+    localStorage.setItem(KEY, JSON.stringify(d)); db = load(); persist(); toast('Sauvegarde restaurée'); render();
   };
   rd.readAsText(f);
 });
@@ -1269,6 +1308,23 @@ const A = {
     if (i === 0 && (await setCode())) toast('Code modifié');
     if (i === 1) { db.settings.code = ''; db.notes.forEach(n => n.locked = false); persist(); toast('Verrouillage désactivé'); }
     render();
+  },
+  async sync() {
+    if (!window.Sync || !Sync.configured()) { dialog({ title: 'Synchronisation', msg: 'Firebase n\'est pas encore configuré dans cette version.', ok: 'OK', noCancel: true }); return; }
+    if (Sync.email()) {
+      const i = await sheet(`${Sync.email()}\n${SYNC_ST[Sync.status()]}`, [{ label: 'Synchroniser maintenant' }, { label: 'Se déconnecter', red: true }]);
+      if (i === 0) { Sync.now(); toast('Synchronisation…'); }
+      if (i === 1 && await dialog({ title: 'Se déconnecter ?', msg: 'Les notes restent sur cet appareil mais ne seront plus synchronisées.', ok: 'Déconnecter', red: true })) { Sync.logout(); render(); }
+      return;
+    }
+    const i = await sheet('Retrouvez vos notes sur le téléphone et le PC avec le même compte.', [{ label: 'Se connecter' }, { label: 'Créer un compte' }]);
+    if (i === null) return;
+    const email = await dialog({ title: i ? 'Créer un compte' : 'Se connecter', msg: 'Adresse e-mail', input: '', type: 'email', ok: 'Suivant' });
+    if (!email) return;
+    const pw = await dialog({ title: 'Mot de passe', msg: i ? '6 caractères minimum' : '', input: '', pass: 'pw', ok: i ? 'Créer' : 'Connexion' });
+    if (!pw) return;
+    try { await (i ? Sync.signUp(email, pw) : Sync.signIn(email, pw)); toast('Synchronisation activée'); render(); }
+    catch (e) { dialog({ title: 'Erreur', msg: e.message, ok: 'OK', noCancel: true }); }
   },
   async emptyTrash() {
     if (!trash().length) return;
