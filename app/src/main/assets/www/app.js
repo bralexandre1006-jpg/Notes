@@ -142,8 +142,9 @@ let selected = new Set();
 let ed = null, edNote = null, saveT = null, savedRange = null, newCk = false, newLine = false;
 
 const cur = () => stack[stack.length - 1];
-function go(r, hl) { if (DESK) return dkGo(r); cur().hl = hl; const sc = view && view.querySelector('.scroll'); cur().scroll = sc ? sc.scrollTop : 0; leaveEditor(); stack.push(r); query = ''; searching = false; selMode = false; selected.clear(); render(1); }
-function pop() { if (DESK) { leaveEditor(); if (stack.length > 2) stack.pop(); return dkRender(); } leaveEditor(); if (stack.length > 1) stack.pop(); query = ''; searching = false; selMode = false; selected.clear(); render(-1); }
+let navUntil = 0;
+function go(r, hl) { if (DESK) return dkGo(r); if (Date.now() < navUntil) return; cur().hl = hl; const sc = view && view.querySelector('.scroll'); cur().scroll = sc ? sc.scrollTop : 0; leaveEditor(); stack.push(r); query = ''; searching = false; selMode = false; selected.clear(); render(1); }
+function pop() { if (DESK) { leaveEditor(); if (stack.length > 2) stack.pop(); return dkRender(); } if (Date.now() < navUntil) return; leaveEditor(); if (stack.length > 1) stack.pop(); query = ''; searching = false; selMode = false; selected.clear(); render(-1); }
 
 window.onBack = function () {
   if (ov.classList.contains('show')) { closeOverlay(); return true; }
@@ -183,6 +184,7 @@ function render(dir) {
     app.appendChild(nv);
     const sc = nv.querySelector('.scroll'); if (sc && keep) sc.scrollTop = keep;
   } else {
+    navUntil = Date.now() + 380;
     old.style.pointerEvents = 'none';
     const top = dir > 0 ? nv : old, under = dir > 0 ? old : nv;
     if (dir > 0) { app.appendChild(nv); nv.querySelectorAll('.sw,.group,.sechdr,.scroll>h2').forEach((e, i) => { if (i < 12) { e.classList.add('rise'); e.style.animationDelay = (120 + i * 28) + 'ms'; } }); }
@@ -205,7 +207,7 @@ function render(dir) {
     }));
     setTimeout(() => {
       old.remove();
-      nv.classList.remove('moving', 'anim'); nv.style.transform = ''; nv.style.opacity = '';
+      if (view === nv) { nv.classList.remove('moving', 'anim'); nv.style.transform = ''; nv.style.opacity = ''; }
     }, 560);
   }
   const sc = nv.querySelector('.scroll');
@@ -395,7 +397,7 @@ if (window.Sync) Sync.onStatus(() => { if (cur().v === 'settings') { const c = $
 /* ---------- editor ---------- */
 function vEditor(id) {
   const n = db.notes.find(x => x.id === id);
-  return `<div class="hdr edhdr"><button class="cb" data-a="back">${I.back}</button>
+  return `<div class="hdr edhdr"><button class="cb" data-a="back">${I.back}</button>${DESK ? `<button class="cb dkfull" data-a="dkFull" title="Agrandir la note">${sv('<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9 4.5v15"/>', 20, 1.7)}</button>` : ''}
     <div class="r"><button class="cb" id="undoBtn" data-a="undo" style="display:none">${I.undo}</button><div class="pillb"><button data-a="share">${I.share}</button><button data-a="noteMenu">${I.more}</button></div>
     <button class="ok" id="okBtn" data-a="doneEdit" style="display:none">${I.check}</button></div></div>
     <div class="edwrap paper-${n.paper || 'none'}" id="edwrap">
@@ -408,7 +410,7 @@ function vEditor(id) {
     <div class="fbox" id="fbar" style="display:none">
       <div class="fpanel" id="fpanel"><div class="fpin">
         <div class="seg segs"><span class="seg-ind"></span>${[['h1', 'Titre'], ['h2', 'Sous-titre'], ['h3', 'Titre secondaire'], ['', 'Corps']].map(([k, l]) => `<button class="sg sg-${k || 'body'}" data-a="seg" data-id="${k}">${l}</button>`).join('')}</div>
-        <div class="seg seg2"><button data-a="inl" data-id="bold"><b>B</b></button><button data-a="inl" data-id="italic"><i>I</i></button><button data-a="inl" data-id="underline"><u>U</u></button><button data-a="inl" data-id="strikeThrough"><s>S</s></button><button data-a="seg" data-id="mono" style="font-family:monospace;font-size:17px">Mono</button></div>
+        <div class="seg seg2"><button data-a="inl" data-id="bold"><b>B</b></button><button data-a="inl" data-id="italic"><i>I</i></button><button data-a="inl" data-id="underline"><u>U</u></button><button data-a="inl" data-id="strikeThrough"><s>S</s></button><button data-a="seg" data-id="mono" style="font-family:monospace;font-size:17px">Mono</button><button data-a="align" id="acBtn">${sv('<path d="M4 6h16M7 10h10M4 14h16M7 18h10"/>', 22, 2.2)}</button></div>
       </div></div>
       <div class="frow"><button class="aa" id="aaBtn" data-a="tFormat">Aa</button><button id="ckBtn" data-a="tChecklist">${I.checklist}</button><button id="tbBtn" data-a="tTable">${I.table}</button>
       <button data-a="tAttach">${I.clip}</button><button data-a="tList">${I.list}</button></div></div>`;
@@ -475,6 +477,7 @@ function syncBar() {
   const ind = $v('.seg-ind');
   if (ind) { if (act) { ind.style.width = act.offsetWidth + 'px'; ind.style.transform = `translateX(${act.offsetLeft - 2}px)`; ind.style.opacity = 1; } else ind.style.opacity = 0; }
   ['bold', 'italic', 'underline', 'strikeThrough'].forEach(c => { const x = view.querySelector(`[data-a="inl"][data-id="${c}"]`); if (x) x.classList.toggle('on', document.queryCommandState(c) && !(c === 'bold' && /h[123]/.test(k))); });
+  const ac = $v('#acBtn'); if (ac) ac.classList.toggle('on', !!(b && b.classList.contains('ac')));
   const intable = !!cellOf();
   const tb = $v('#tbBtn'), ck = $v('#ckBtn');
   if (tb) tb.classList.toggle('intable', intable);
@@ -976,12 +979,15 @@ function folderSheet(f) {
     };
     paint();
     setTimeout(() => inp.focus(), 380);
+    let done = false;
     const finish = v => {
-      sh.classList.add('closing'); app.classList.remove('behind'); inp.blur();
-      setTimeout(() => { ovDone = null; closeOverlay(); res(v); }, 300);
+      if (done) return; done = true;
+      sh.classList.add('closing'); ov.classList.add('closing'); app.classList.remove('behind'); inp.blur();
+      ovDone = null; res(v);
+      const t = ovTok; setTimeout(() => { if (t === ovTok) closeOverlay(undefined, true); }, 320);
     };
-    ovDone = () => { app.classList.remove('behind'); res(null); };
-    ov.querySelector('.scrim').onclick = null;
+    ovDone = () => { done = true; app.classList.remove('behind'); res(null); };
+    const sc0 = ov.querySelector('.scrim'), sc1 = sc0.cloneNode(); sc0.replaceWith(sc1); sc1.addEventListener('click', () => finish(null));
     inp.addEventListener('input', paint);
     inp.addEventListener('keydown', e => { if (e.key === 'Enter' && inp.value.trim()) finish({ name: inp.value.trim(), color, icon }); });
     sh.addEventListener('click', e => {
@@ -1417,10 +1423,12 @@ const A = {
     schedule(); syncBar();
   },
   seg: k => setBlock(k),
+  align() { restoreRange(); const b = curBlock(); if (!b || b === ed) return; b.classList.toggle('ac'); schedule(); syncBar(); },
   inl: k => inline(k),
   undo() { if (ed) { ed.focus(); document.execCommand('undo'); schedule(); } },
   tList: () => inline('insertUnorderedList'),
   tFormat() { keepRange(); $v('#fbar').classList.toggle('open'); syncBar(); setTimeout(keepVisible, 340); },
+  dkFull() { dkUi.full = !dkUi.full; dkApplyUi(true); },
   async folderMore(id) {
     if (id === 'notes') return A.renameFolder(id);
     const f = folderOf(id);
@@ -1440,6 +1448,31 @@ app.addEventListener('click', e => {
 
 /* ================= desktop (3 colonnes) ================= */
 let dkKey = null, dkLT = null, dkLastFolder = null;
+const DKUI = 'notes.desk.ui';
+let dkUi = { sw: 248, lw: 340, full: false };
+try { Object.assign(dkUi, JSON.parse(localStorage.getItem(DKUI)) || {}); } catch (e) { }
+function dkApplyUi(save) {
+  if (!view) return;
+  view.style.setProperty('--sw', dkUi.sw + 'px'); view.style.setProperty('--lw', dkUi.lw + 'px');
+  view.classList.toggle('full', !!dkUi.full);
+  if (save) try { localStorage.setItem(DKUI, JSON.stringify(dkUi)); } catch (e) { }
+}
+function dkSplit(el, which) {
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault(); el.setPointerCapture(e.pointerId);
+    const x0 = e.clientX, v0 = dkUi[which];
+    view.classList.add('dragging');
+    const mv = ev => {
+      let v = v0 + ev.clientX - x0;
+      const max = which === 'sw' ? 380 : Math.min(560, innerWidth - dkUi.sw - 420);
+      v = Math.max(which === 'sw' ? 180 : 260, Math.min(max, v));
+      dkUi[which] = Math.round(v); dkApplyUi(false);
+    };
+    const up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); view.classList.remove('dragging'); dkApplyUi(true); };
+    el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  });
+  el.addEventListener('dblclick', () => { dkUi[which] = which === 'sw' ? 248 : 340; dkApplyUi(true); });
+}
 const dkFolder = () => (stack[1] && stack[1].id) || 'notes';
 function dkGo(r) {
   leaveEditor(); selMode = false; selected.clear();
@@ -1510,8 +1543,10 @@ function dkRender() {
   if (!view) {
     view = document.createElement('div'); view.className = 'view dk';
     view.innerHTML = `<div class="dk-pane dk-side"></div><div class="dk-pane dk-list"></div><div class="dk-pane dk-main"></div>
+      <div class="dk-split s1"></div><div class="dk-split s2"></div>
       <div class="winctl"><button data-w="min">${sv('<path d="M5 12h14"/>', 16, 1.6)}</button><button data-w="max" id="wmax">${sv('<rect x="5" y="5" width="14" height="14" rx="2.5"/>', 15, 1.6)}</button><button data-w="close" class="wx">${sv('<path d="M6 6l12 12M18 6L6 18"/>', 16, 1.6)}</button></div>`;
     app.appendChild(view);
+    dkApplyUi(false); dkSplit($v('.s1'), 'sw'); dkSplit($v('.s2'), 'lw');
     view.querySelectorAll('[data-w]').forEach(b => b.addEventListener('click', () => Desktop.win(b.dataset.w)));
     if (Desktop.onMax) Desktop.onMax(m => { document.documentElement.classList.toggle('maxed', m); $v('#wmax').innerHTML = m ? sv('<rect x="5" y="8" width="11" height="11" rx="2"/><path d="M9 8V6.5A1.5 1.5 0 0 1 10.5 5h7A1.5 1.5 0 0 1 19 6.5v7a1.5 1.5 0 0 1-1.5 1.5H16"/>', 15, 1.6) : sv('<rect x="5" y="5" width="14" height="14" rx="2.5"/>', 15, 1.6); });
   }
@@ -1541,6 +1576,7 @@ if (DESK) {
     if (!e.ctrlKey || ov.classList.contains('show')) return;
     const k = e.key.toLowerCase();
     if (k === 'n') { e.preventDefault(); newNote(); }
+    if (e.key === '\\') { e.preventDefault(); A.dkFull(); }
     if (k === 'f') { e.preventDefault(); if (ed && cur().v === 'editor') openFind(); else { const q = $v('#q'); if (q) q.focus(); } }
   });
 }

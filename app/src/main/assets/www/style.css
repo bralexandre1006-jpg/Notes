@@ -48,7 +48,8 @@ svg{display:block}
 /* folder sheet */
 .fsheet{position:absolute;left:0;right:0;top:calc(28px + var(--st));bottom:0;background:#1c1c1e;border-radius:34px 34px 0 0;overflow:hidden;
   animation:shUp .55s var(--spring) both;transition:transform .3s cubic-bezier(.32,.72,0,1)}
-.fsheet.closing{transform:translateY(105%)}
+.fsheet.closing{animation:shDown .3s cubic-bezier(.32,.72,0,1) both}
+@keyframes shDown{from{transform:none}to{transform:translateY(105%)}}
 @keyframes shUp{from{transform:translateY(100%)}to{transform:none}}
 .fpage{position:absolute;inset:0;padding:16px 16px 0;transition:transform .38s cubic-bezier(.32,.72,0,1),opacity .3s;overflow-y:auto}
 .fpage.p2{transform:translateX(100%)}
@@ -383,7 +384,22 @@ html.desk{--side:#0e0e10;--list:#08080a;--dl:rgba(255,255,255,.07)}
 html.desk,html.desk *{cursor:default}
 .desk input,.desk #ed,.desk #ed *{cursor:text}
 .desk .view{will-change:auto;backface-visibility:visible}
-.desk .view.dk{display:grid;grid-template-columns:248px 340px minmax(0,1fr);background:#000}
+.desk .view.dk{display:grid;grid-template-columns:var(--sw,248px) var(--lw,340px) minmax(0,1fr);background:#000;transition:grid-template-columns .5s var(--spring)}
+.desk .view.dk.dragging{transition:none}
+.desk .view.dk.full{grid-template-columns:0px 0px minmax(0,1fr)}
+.desk .view.dk.full .dk-side,.desk .view.dk.full .dk-list{border-right-color:transparent}
+.desk .dk-side>*,.desk .dk-list>*{transition:opacity .25s}
+.desk .view.dk.full .dk-side>*,.desk .view.dk.full .dk-list>*{opacity:0;pointer-events:none}
+.desk .dk-split{position:absolute;top:0;bottom:0;width:9px;z-index:25;-webkit-app-region:no-drag}
+.desk .dk-split,.desk .dk-split *{cursor:col-resize!important}
+.desk .dk-split::after{content:"";position:absolute;left:4px;top:0;bottom:0;width:1px;background:transparent;transition:background .2s}
+.desk .dk-split:hover::after,.desk .dragging .dk-split::after{background:var(--gold)}
+.desk .dk-split.s1{left:calc(var(--sw,248px) - 5px)}
+.desk .dk-split.s2{left:calc(var(--sw,248px) + var(--lw,340px) - 5px)}
+.desk .view.dk.full .dk-split{display:none}
+.desk .dragging,.desk .dragging *{user-select:none}
+.desk .dk-main .edhdr .dkfull{display:flex;color:#d1d1d6}
+.desk .view.dk.full .dkfull{color:var(--gold)}
 .desk .dk-pane{position:relative;display:flex;flex-direction:column;min-width:0;overflow:hidden}
 .desk .dk-side{background:var(--side);border-right:1px solid var(--dl)}
 .desk .dk-list{background:var(--list);border-right:1px solid var(--dl)}
@@ -524,6 +540,10 @@ html.desk,html.desk *{cursor:default}
 .desk .dlg{width:320px}
 .desk .dlg .db button:hover{background:rgba(255,255,255,.06)}
 .desk .fsheet{left:calc(50% - 230px);right:auto;width:460px;top:8%;bottom:8%;border-radius:24px;animation:dkpop .4s var(--bounce) both}
-.desk .fsheet.closing{transform:scale(.94);opacity:0;transition:transform .25s,opacity .25s}
+.desk .fsheet.closing{animation:popout .22s ease-in both}
 .desk #app.behind{transform:scale(.97);border-radius:12px}
 .desk .toast{top:20px;font-size:14px;padding:10px 18px}
+#ed .ac{text-align:center}
+#ed .ck.ac{text-align:left}
+.seg2 #acBtn{display:flex;align-items:center;justify-content:center}
+.seg2 #acBtn.on{background:#636366}
