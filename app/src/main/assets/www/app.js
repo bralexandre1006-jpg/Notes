@@ -312,7 +312,7 @@ function foldersContent() {
     <div class="sechdr ${col ? 'col' : ''}" data-a="toggleCollapse"><h2>Tous les dossiers</h2><span style="color:var(--sub)">${I.chevD}</span></div>
     ${col ? '' : `<div class="group">${rows}</div>`}
     ${db.settings.hideSys && !folderEdit ? '' : `<div class="group${folderEdit ? ' sysg' : ''}">
-      <div class="row" data-a="openTrash"><span class="ic">${I.trash}</span><span class="lbl">Récemment supprimées</span><span class="cnt">${trash().length}</span><span class="cnt">${I.chevR}</span></div>
+      <div class="row" data-a="openTrash"><span class="ic">${I.trash}</span><span class="lbl">Corbeille</span><span class="cnt">${trash().length}</span><span class="cnt">${I.chevR}</span></div>
       <div class="row" data-a="openSettings"><span class="ic">${I.gear}</span><span class="lbl">Paramètres</span><span class="cnt">${I.chevR}</span></div>
       ${folderEdit ? `<div class="row" data-a="toggleSys"><span class="ic" style="color:var(--sub)">${I.eye}</span><span class="lbl">Masquer cette section</span><span class="tog ${db.settings.hideSys ? 'on' : ''}"></span></div>` : ''}
     </div>`}`;
@@ -329,7 +329,7 @@ function vList(id) {
       <button class="pill ${dis}" data-a="${isTrash ? 'selRestore' : 'selMove'}">${isTrash ? 'Restaurer' : 'Déplacer'}</button>
       <button class="pill ${dis}" data-a="selDelete" style="color:var(--red)">Supprimer</button></div>`;
   } else bottom = bottomSearch(!isTrash);
-  return `<div class="hdr"><div class="htitle">${esc(isTrash ? 'Récemment supprimées' : folderOf(id).name)}</div><button class="cb" data-a="back">${I.back}</button><div class="r">${right}</div></div>
+  return `<div class="hdr"><div class="htitle">${esc(isTrash ? 'Corbeille' : folderOf(id).name)}</div><button class="cb" data-a="back">${I.back}</button><div class="r">${right}</div></div>
     <div class="scroll" id="content">${listContent(id)}</div>${bottom}`;
 }
 function listContent(id) {
@@ -337,7 +337,7 @@ function listContent(id) {
   const all = isTrash ? trash() : inFolder(id);
   const arr = all.filter(match);
   if (searching && !query) return recentBlock(all.slice());
-  const name = isTrash ? 'Récemment supprimées' : folderOf(id).name;
+  const name = isTrash ? 'Corbeille' : folderOf(id).name;
   const cnt = selMode ? `${selected.size} sélectionnée${selected.size > 1 ? 's' : ''}` : `${all.length} Note${all.length > 1 ? 's' : ''}`;
   return `<h1>${esc(name)}</h1><div class="count">${cnt}</div>
     ${isTrash && all.length ? '<div class="count" style="margin-top:14px">Les notes sont supprimées définitivement après 30 jours.</div><div style="height:16px"></div>' : ''}
@@ -789,7 +789,7 @@ function closeOverlay(v, instant) {
   const d = ovDone; ovDone = null; if (d) d(v === undefined ? null : v);
 }
 const haptic = () => { try { if (window.Android && Android.haptic) Android.haptic(); else if (navigator.vibrate) navigator.vibrate(8); } catch (e) { } };
-const confirmDelete = (n = 1) => dialog({ title: n > 1 ? `Supprimer ${n} notes ?` : 'Supprimer la note ?', msg: n > 1 ? 'Elles seront déplacées dans Récemment supprimées.' : 'Elle sera déplacée dans Récemment supprimées.', ok: 'Supprimer', red: true });
+const confirmDelete = (n = 1) => dialog({ title: n > 1 ? `Supprimer ${n} notes ?` : 'Supprimer la note ?', msg: n > 1 ? 'Elles seront déplacées dans la corbeille.' : 'Elle sera déplacée dans la corbeille.', ok: 'Supprimer', red: true });
 function collapseCard(id, then) {
   const c = view && view.querySelector(`.ncard[data-id="${id}"]`), w = c && c.closest('.sw');
   if (!w) return then();
@@ -1215,7 +1215,7 @@ const A = {
   async delFolder(id, el, e) {
     e.stopPropagation();
     const f = folderOf(id), c = inFolder(id).length;
-    const ok = await dialog({ title: `Supprimer « ${f.name} » ?`, msg: c ? `Les ${c} note${c > 1 ? 's' : ''} de ce dossier seront déplacées dans Récemment supprimées.` : '', ok: 'Supprimer', red: true });
+    const ok = await dialog({ title: `Supprimer « ${f.name} » ?`, msg: c ? `Les ${c} note${c > 1 ? 's' : ''} de ce dossier seront déplacées dans la corbeille.` : '', ok: 'Supprimer', red: true });
     if (!ok) return;
     trashNotes(inFolder(id).map(n => n.id));
     db.folders = db.folders.filter(x => x.id !== id); persist(); render();
@@ -1311,7 +1311,7 @@ const A = {
   async storage() {
     const bytes = (localStorage.getItem(KEY) || '').length * 2;
     const imgs = db.notes.reduce((a, n) => a + ((n.html || '').match(/<img/g) || []).length, 0);
-    const i = await sheet(`${live().length} notes · ${db.folders.length} dossiers · ${imgs} image${imgs > 1 ? 's' : ''}\n${(bytes / 1048576).toFixed(2)} Mo utilisés`, [{ label: 'Vider Récemment supprimées', red: true }]);
+    const i = await sheet(`${live().length} notes · ${db.folders.length} dossiers · ${imgs} image${imgs > 1 ? 's' : ''}\n${(bytes / 1048576).toFixed(2)} Mo utilisés`, [{ label: 'Vider la corbeille', red: true }]);
     if (i === 0) A.emptyTrash();
   },
   async lockSettings() {
@@ -1341,7 +1341,7 @@ const A = {
   },
   async emptyTrash() {
     if (!trash().length) return;
-    const ok = await dialog({ title: 'Tout supprimer ?', msg: 'Les notes de Récemment supprimées seront effacées définitivement.', ok: 'Supprimer', red: true });
+    const ok = await dialog({ title: 'Tout supprimer ?', msg: 'Les notes de la corbeille seront effacées définitivement.', ok: 'Supprimer', red: true });
     if (!ok) return;
     db.notes = live(); persist(); render();
   },
@@ -1448,7 +1448,7 @@ function dkGo(r) {
   dkRender();
 }
 function dkSide() {
-  const fid = dkFolder(), row = (a, id, ic, color, name, cnt, more) =>
+  const fid = cur().v === 'settings' ? null : dkFolder(), row = (a, id, ic, color, name, cnt, more) =>
     `<div class="dk-row${fid === id ? ' on' : ''}" data-a="${a}" data-id="${id}"${more ? ` data-fid="${id}"` : ''}>
       <span class="dk-ic" style="color:${color}">${ic}</span><span class="dk-nm">${esc(name)}</span>
       ${more ? `<button class="dk-more" data-a="folderMore" data-id="${id}">${I.more}</button>` : ''}<span class="dk-n">${cnt}</span></div>`;
@@ -1457,7 +1457,7 @@ function dkSide() {
     <div class="scroll dk-sc"><div class="dk-sec">Dossiers</div>
       ${db.folders.map(f => row('openFolder', f.id, fIcon(f.icon, 20), f.color || 'var(--gold)', f.name, inFolder(f.id).length, true)).join('')}
       <div class="dk-sep"></div>
-      ${row('openTrash', 'trash', sv('<path d="M4 6h16M9 6V4h6v2M6 6l1 14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-14"/><path d="M10 10v7M14 10v7"/>', 20, 1.6), 'var(--gold)', 'Récemment supprimées', trash().length)}
+      ${row('openTrash', 'trash', sv('<path d="M4 6h16M9 6V4h6v2M6 6l1 14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-14"/><path d="M10 10v7M14 10v7"/>', 20, 1.6), 'var(--gold)', 'Corbeille', trash().length)}
       <div class="dk-row${cur().v === 'settings' ? ' on' : ''}" data-a="openSettings"><span class="dk-ic" style="color:var(--gold)">${sv('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>', 20, 1.6)}</span><span class="dk-nm">Paramètres</span></div>
     </div>`;
 }
@@ -1472,7 +1472,7 @@ function dkList() {
   const sel = selMode ? `<div class="bottom selbar">
       <button class="pill ${selected.size ? '' : 'dis'}" data-a="${isTrash ? 'selRestore' : 'selMove'}">${isTrash ? 'Restaurer' : 'Déplacer'}</button>
       <button class="pill ${selected.size ? '' : 'dis'}" data-a="selDelete" style="color:var(--red)">Supprimer</button></div>` : '';
-  return `<div class="dk-hd"><div class="dk-lt"><div class="dk-h">${esc(isTrash ? 'Récemment supprimées' : folderOf(id).name)}</div><div class="dk-c">${cnt}</div></div>
+  return `<div class="dk-hd"><div class="dk-lt"><div class="dk-h">${esc(isTrash ? 'Corbeille' : folderOf(id).name)}</div><div class="dk-c">${cnt}</div></div>
       ${selMode ? `<button class="dkb gold" data-a="endSel">${I.check}</button>` : `<button class="dkb" data-a="listMenu">${I.more}</button>`}
       ${isTrash ? '' : `<button class="dkb" data-a="newNote" title="Nouvelle note (Ctrl+N)">${I.compose}</button>`}</div>
     <div class="dk-search"><div class="search">${I.search}<input id="q" placeholder="Rechercher" value="${esc(query)}" autocomplete="off">${query ? `<button class="x" data-a="clearQ">${I.xc}</button>` : ''}</div></div>
