@@ -5,7 +5,7 @@ const fs = require('fs');
 if (!app.requestSingleInstanceLock()) app.quit();
 
 let win;
-const stateFile = () => path.join(app.getPath('userData'), 'window.json');
+const stateFile = () => path.join(app.getPath('userData'), 'window-v2.json');
 function readState() {
   try { return JSON.parse(fs.readFileSync(stateFile(), 'utf8')); } catch (e) { return {}; }
 }
@@ -17,16 +17,15 @@ function saveState() {
 function create() {
   const s = readState();
   win = new BrowserWindow({
-    width: s.width || 440,
-    height: s.height || 900,
+    width: s.width || 1200,
+    height: s.height || 780,
     x: s.x, y: s.y,
-    minWidth: 360,
+    minWidth: 900,
     minHeight: 560,
     show: false,
+    frame: false,
     backgroundColor: '#000000',
-    titleBarStyle: 'hidden',
-    titleBarOverlay: { color: '#000000', symbolColor: '#ffffff', height: 36 },
-    icon: path.join(__dirname, 'icon.png'),
+    icon: path.join(__dirname, 'icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       webSecurity: false,
@@ -37,6 +36,9 @@ function create() {
   if (s.max) win.maximize();
   win.once('ready-to-show', () => win.show());
   win.on('close', saveState);
+  win.on('maximize', () => win.webContents.send('max', true));
+  win.on('unmaximize', () => win.webContents.send('max', false));
+  win.webContents.on('did-finish-load', () => win.webContents.send('max', win.isMaximized()));
   win.webContents.on('will-navigate', (e, url) => { if (!url.startsWith('file:')) { e.preventDefault(); shell.openExternal(url); } });
   win.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) shell.openExternal(url); return { action: 'deny' }; });
   win.webContents.session.setSpellCheckerLanguages(['fr']);
@@ -48,6 +50,13 @@ ipcMain.on('save-file', (e, name, content) => {
     fs.writeFileSync(path.join(app.getPath('downloads'), path.basename(name)), content, 'utf8');
     e.returnValue = true;
   } catch (err) { e.returnValue = false; }
+});
+
+ipcMain.on('win', (e, a) => {
+  if (!win) return;
+  if (a === 'min') win.minimize();
+  if (a === 'max') win.isMaximized() ? win.unmaximize() : win.maximize();
+  if (a === 'close') win.close();
 });
 
 Menu.setApplicationMenu(null);

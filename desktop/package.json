@@ -18,9 +18,9 @@
     "appId": "be.alexandre.notes.pc",
     "productName": "Notes",
     "artifactName": "Notes-PC-Setup-${version}.${ext}",
-    "files": ["main.js", "preload.js", "icon.png", "www/**/*"],
+    "files": ["main.js", "preload.js", "icon.ico", "www/**/*"],
     "directories": { "output": "dist", "buildResources": "build" },
-    "win": { "target": "nsis", "icon": "build/icon.png" },
+    "win": { "target": "nsis", "icon": "build/icon.ico" },
     "nsis": {
       "oneClick": true,
       "perMachine": false,

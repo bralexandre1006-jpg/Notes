@@ -51,6 +51,8 @@ const I = {
 };
 
 /* ================= data ================= */
+const DESK = !!window.Desktop;
+if (DESK) document.documentElement.classList.add('desk');
 const KEY = 'notes.data.v1';
 const DAY = 864e5;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -140,8 +142,8 @@ let selected = new Set();
 let ed = null, edNote = null, saveT = null, savedRange = null, newCk = false, newLine = false;
 
 const cur = () => stack[stack.length - 1];
-function go(r, hl) { cur().hl = hl; const sc = view && view.querySelector('.scroll'); cur().scroll = sc ? sc.scrollTop : 0; leaveEditor(); stack.push(r); query = ''; searching = false; selMode = false; selected.clear(); render(1); }
-function pop() { leaveEditor(); if (stack.length > 1) stack.pop(); query = ''; searching = false; selMode = false; selected.clear(); render(-1); }
+function go(r, hl) { if (DESK) return dkGo(r); cur().hl = hl; const sc = view && view.querySelector('.scroll'); cur().scroll = sc ? sc.scrollTop : 0; leaveEditor(); stack.push(r); query = ''; searching = false; selMode = false; selected.clear(); render(1); }
+function pop() { if (DESK) { leaveEditor(); if (stack.length > 2) stack.pop(); return dkRender(); } leaveEditor(); if (stack.length > 1) stack.pop(); query = ''; searching = false; selMode = false; selected.clear(); render(-1); }
 
 window.onBack = function () {
   if (ov.classList.contains('show')) { closeOverlay(); return true; }
@@ -168,6 +170,7 @@ function viewHTML(r) {
   return vSettings();
 }
 function render(dir) {
+  if (DESK) return dkRender();
   const r = cur();
   const nv = document.createElement('div');
   nv.className = 'view' + (searching ? ' searching' : '');
@@ -236,6 +239,7 @@ function bindSearch() {
 function refreshContent(noAnim) {
   const c = $v('#content');
   if (!c) return;
+  if (DESK) { c.innerHTML = dkListContent(); return; }
   c.innerHTML = cur().v === 'folders' ? foldersContent() : listContent(cur().id);
   c.scrollTop = 0;
   if (!noAnim) c.querySelectorAll('.sw,.group,.sechdr,h2,h1,.count').forEach((e, i) => { if (i < 10) { e.classList.add('rise'); e.style.animationDelay = (i * 30) + 'ms'; } });
@@ -251,7 +255,7 @@ function noteCard(n) {
   const img = imgOf(n);
   const sel = selMode ? `<div class="sel ${selected.has(n.id) ? 'on' : ''}">${selected.has(n.id) ? I.checkS : ''}</div>` : '';
   const swipe = !selMode && !n.deleted;
-  return `<div class="sw">${swipe ? `<div class="swa"><button class="swb mv" data-a="swMove" data-id="${n.id}">${I.move}</button><button class="swb del" data-a="swDel" data-id="${n.id}">${I.trash}</button></div>` : ''}<div class="ncard${swipe ? ' swp' : ''}" data-a="open" data-id="${n.id}">${sel}
+  return `<div class="sw">${swipe ? `<div class="swa"><button class="swb mv" data-a="swMove" data-id="${n.id}">${I.move}</button><button class="swb del" data-a="swDel" data-id="${n.id}">${I.trash}</button></div>` : ''}<div class="ncard${swipe ? ' swp' : ''}${DESK && cur().v === 'editor' && cur().id === n.id ? ' on' : ''}" data-a="open" data-id="${n.id}">${sel}
     <div class="b"><div class="nt">${n.locked ? `<span class="lk">${I.lockS}</span>` : ''}${esc(titleOf(n))}</div>
     <div class="n2"><span class="d">${shortDate(n.deleted || t)}</span>${n.locked ? 'Verrouillée' : esc(previewOf(n))}</div>
     <div class="n3">${I.folderS}${esc(folderOf(n.folderId).name)}</div></div>
@@ -376,6 +380,7 @@ const SYNC_SH = { off: 'Désactivée', connecting: 'En cours', ok: 'Activée', o
 function syncLabel() { return window.Sync && Sync.email() ? SYNC_SH[Sync.status()] : 'Désactivée'; }
 function syncChanged(keys) {
   persist();
+  if (DESK) { if (!ov.classList.contains('show')) dkRender(); return; }
   const r = cur();
   if (r.v === 'editor') {
     if (!db.notes.find(x => x.id === r.id)) { if (!ov.classList.contains('show')) pop(); return; }
@@ -566,6 +571,7 @@ function saveNote() {
   edNote.text = ed.innerText;
   edNote.modified = Date.now();
   persist();
+  if (DESK) dkListSoon();
 }
 function isEmptyNote(n) { return !(n.text || '').trim() && !/<img|<table/.test(n.html || ''); }
 function leaveEditor() {
@@ -819,7 +825,12 @@ const lpCancel = () => { if (lp) { clearTimeout(lp.t); lp = null; } };
 app.addEventListener('pointermove', e => { if (lp && Math.hypot(e.clientX - lp.x0, e.clientY - lp.y0) > 8) lpCancel(); });
 app.addEventListener('pointerup', lpCancel);
 app.addEventListener('pointercancel', lpCancel);
-app.addEventListener('contextmenu', e => { if (!e.target.closest('#ed,input,textarea')) e.preventDefault(); });
+app.addEventListener('contextmenu', e => {
+  if (!e.target.closest('#ed,input,textarea')) e.preventDefault();
+  if (!DESK || selMode) return;
+  const card = e.target.closest('.ncard'), fr = e.target.closest('.dk-row[data-fid]');
+  if (card) { lpCancel(); contextMenu(card); } else if (fr) A.folderMore(fr.dataset.fid);
+});
 
 async function contextMenu(card) {
   const id = card.dataset.id, n = db.notes.find(x => x.id === id);
@@ -1067,6 +1078,7 @@ restoreInput.addEventListener('change', () => {
 let bk = null;
 app.addEventListener('pointerdown', e => {
   bk = null;
+  if (DESK) return;
   if (stack.length < 2 || selMode || openSw || ov.classList.contains('show') || !view || app.querySelectorAll('.view').length > 1) return;
   if (cur().v === 'editor' && e.clientX > 30) return;
   if (e.target.closest('input,.fbox,.bottom')) return;
@@ -1132,6 +1144,7 @@ function newNote() {
   let fid = 'notes';
   if (r.v === 'list' && r.id !== 'trash') fid = r.id;
   if (r.v === 'editor' && edNote) fid = edNote.folderId;
+  if (DESK) { if (dkFolder() === 'trash') stack[1] = { v: 'list', id: 'notes' }; fid = dkFolder(); }
   const now = Date.now();
   const n = { id: uid(), folderId: fid, html: `<div${db.settings.start ? ` class="${db.settings.start}"` : ''}><br></div>`, text: '', created: now, modified: now, deleted: null };
   db.notes.push(n);
@@ -1407,7 +1420,14 @@ const A = {
   inl: k => inline(k),
   undo() { if (ed) { ed.focus(); document.execCommand('undo'); schedule(); } },
   tList: () => inline('insertUnorderedList'),
-  tFormat() { keepRange(); $v('#fbar').classList.toggle('open'); syncBar(); setTimeout(keepVisible, 340); }
+  tFormat() { keepRange(); $v('#fbar').classList.toggle('open'); syncBar(); setTimeout(keepVisible, 340); },
+  async folderMore(id) {
+    if (id === 'notes') return A.renameFolder(id);
+    const f = folderOf(id);
+    const i = await sheet(f.name, [{ label: 'Modifier le dossier' }, { label: 'Supprimer le dossier', red: true }]);
+    if (i === 0) A.renameFolder(id);
+    if (i === 1) A.delFolder(id, null, { stopPropagation() { } });
+  }
 };
 app.addEventListener('click', e => {
   if (Date.now() < noClickUntil) { e.stopPropagation(); return; }
@@ -1417,5 +1437,112 @@ app.addEventListener('click', e => {
   const f = A[el.dataset.a];
   if (f) f(el.dataset.id, el, e);
 });
+
+/* ================= desktop (3 colonnes) ================= */
+let dkKey = null, dkLT = null, dkLastFolder = null;
+const dkFolder = () => (stack[1] && stack[1].id) || 'notes';
+function dkGo(r) {
+  leaveEditor(); selMode = false; selected.clear();
+  if (r.v === 'list') { query = ''; stack = [stack[0], r]; }
+  else stack = [stack[0], stack[1] || { v: 'list', id: 'notes' }, r];
+  dkRender();
+}
+function dkSide() {
+  const fid = dkFolder(), row = (a, id, ic, color, name, cnt, more) =>
+    `<div class="dk-row${fid === id ? ' on' : ''}" data-a="${a}" data-id="${id}"${more ? ` data-fid="${id}"` : ''}>
+      <span class="dk-ic" style="color:${color}">${ic}</span><span class="dk-nm">${esc(name)}</span>
+      ${more ? `<button class="dk-more" data-a="folderMore" data-id="${id}">${I.more}</button>` : ''}<span class="dk-n">${cnt}</span></div>`;
+  return `<div class="dk-hd"><span class="dk-brand">Notes</span><span class="spacer"></span>
+      <button class="dkb" data-a="newFolder" title="Nouveau dossier">${I.folderPlus}</button></div>
+    <div class="scroll dk-sc"><div class="dk-sec">Dossiers</div>
+      ${db.folders.map(f => row('openFolder', f.id, fIcon(f.icon, 20), f.color || 'var(--gold)', f.name, inFolder(f.id).length, true)).join('')}
+      <div class="dk-sep"></div>
+      ${row('openTrash', 'trash', sv('<path d="M4 6h16M9 6V4h6v2M6 6l1 14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-14"/><path d="M10 10v7M14 10v7"/>', 20, 1.6), 'var(--gold)', 'Récemment supprimées', trash().length)}
+      <div class="dk-row${cur().v === 'settings' ? ' on' : ''}" data-a="openSettings"><span class="dk-ic" style="color:var(--gold)">${sv('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>', 20, 1.6)}</span><span class="dk-nm">Paramètres</span></div>
+    </div>`;
+}
+function dkListContent() {
+  const id = dkFolder(), isTrash = id === 'trash';
+  const arr = (isTrash ? trash() : inFolder(id)).filter(match);
+  return (isTrash && arr.length && !query ? '<div class="dk-note">Les notes sont supprimées définitivement après 30 jours.</div>' : '') + notesBlock(arr, isTrash);
+}
+function dkList() {
+  const id = dkFolder(), isTrash = id === 'trash', all = isTrash ? trash() : inFolder(id);
+  const cnt = selMode ? `${selected.size} sélectionnée${selected.size > 1 ? 's' : ''}` : `${all.length} note${all.length > 1 ? 's' : ''}`;
+  const sel = selMode ? `<div class="bottom selbar">
+      <button class="pill ${selected.size ? '' : 'dis'}" data-a="${isTrash ? 'selRestore' : 'selMove'}">${isTrash ? 'Restaurer' : 'Déplacer'}</button>
+      <button class="pill ${selected.size ? '' : 'dis'}" data-a="selDelete" style="color:var(--red)">Supprimer</button></div>` : '';
+  return `<div class="dk-hd"><div class="dk-lt"><div class="dk-h">${esc(isTrash ? 'Récemment supprimées' : folderOf(id).name)}</div><div class="dk-c">${cnt}</div></div>
+      ${selMode ? `<button class="dkb gold" data-a="endSel">${I.check}</button>` : `<button class="dkb" data-a="listMenu">${I.more}</button>`}
+      ${isTrash ? '' : `<button class="dkb" data-a="newNote" title="Nouvelle note (Ctrl+N)">${I.compose}</button>`}</div>
+    <div class="dk-search"><div class="search">${I.search}<input id="q" placeholder="Rechercher" value="${esc(query)}" autocomplete="off">${query ? `<button class="x" data-a="clearQ">${I.xc}</button>` : ''}</div></div>
+    <div class="scroll" id="content">${dkListContent()}</div>${sel}`;
+}
+function dkEmpty() {
+  return `<div class="dk-hd"></div><div class="dk-empty">${sv('<path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/><path d="M18.4 2.6a2 2 0 0 1 2.9 2.9L12 14.8l-3.8.9.9-3.8z"/>', 44, 1.4)}
+    <div>Aucune note sélectionnée</div>${dkFolder() === 'trash' ? '' : '<button class="pill gold" data-a="newNote">Nouvelle note</button>'}</div>`;
+}
+function dkPaint(sel, html) {
+  const p = view.querySelector(sel), s = p.querySelector('.scroll'), top = s ? s.scrollTop : 0;
+  const a = document.activeElement, foc = a && p.contains(a) && a.id, pos = foc && a.selectionStart;
+  p.innerHTML = html;
+  const s2 = p.querySelector('.scroll'); if (s2) s2.scrollTop = top;
+  if (foc) { const e = p.querySelector('#' + foc); if (e) { e.focus(); try { e.setSelectionRange(pos, pos); } catch (x) { } } }
+}
+function dkBindSearch() {
+  const q = $v('#q'); if (!q) return;
+  q.addEventListener('input', () => {
+    query = q.value; refreshContent(true);
+    const s = q.parentElement, x = s.querySelector('.x');
+    if (query && !x) s.insertAdjacentHTML('beforeend', `<button class="x" data-a="clearQ">${I.xc}</button>`);
+    if (!query && x) x.remove();
+  });
+}
+function dkListSoon() {
+  clearTimeout(dkLT);
+  dkLT = setTimeout(() => { if (view && !ov.classList.contains('show') && !selMode) { dkPaint('.dk-side', dkSide()); const c = $v('#content'); if (c) { const t = c.scrollTop; c.innerHTML = dkListContent(); c.scrollTop = t; } } }, 400);
+}
+function dkRender() {
+  if (!stack[1]) stack[1] = { v: 'list', id: 'notes' };
+  if (stack[1].id !== 'trash' && !db.folders.find(f => f.id === stack[1].id)) stack[1] = { v: 'list', id: 'notes' };
+  let c = cur();
+  if (c.v === 'editor') { const n = db.notes.find(x => x.id === c.id); if (!n || n.deleted) { leaveEditor(); stack.length = 2; c = cur(); } }
+  if (!view) {
+    view = document.createElement('div'); view.className = 'view dk';
+    view.innerHTML = `<div class="dk-pane dk-side"></div><div class="dk-pane dk-list"></div><div class="dk-pane dk-main"></div>
+      <div class="winctl"><button data-w="min">${sv('<path d="M5 12h14"/>', 16, 1.6)}</button><button data-w="max" id="wmax">${sv('<rect x="5" y="5" width="14" height="14" rx="2.5"/>', 15, 1.6)}</button><button data-w="close" class="wx">${sv('<path d="M6 6l12 12M18 6L6 18"/>', 16, 1.6)}</button></div>`;
+    app.appendChild(view);
+    view.querySelectorAll('[data-w]').forEach(b => b.addEventListener('click', () => Desktop.win(b.dataset.w)));
+    if (Desktop.onMax) Desktop.onMax(m => { document.documentElement.classList.toggle('maxed', m); $v('#wmax').innerHTML = m ? sv('<rect x="5" y="8" width="11" height="11" rx="2"/><path d="M9 8V6.5A1.5 1.5 0 0 1 10.5 5h7A1.5 1.5 0 0 1 19 6.5v7a1.5 1.5 0 0 1-1.5 1.5H16"/>', 15, 1.6) : sv('<rect x="5" y="5" width="14" height="14" rx="2.5"/>', 15, 1.6); });
+  }
+  const fchanged = dkLastFolder !== dkFolder(); dkLastFolder = dkFolder();
+  dkPaint('.dk-side', dkSide());
+  dkPaint('.dk-list', dkList());
+  dkBindSearch();
+  if (fchanged) { const sc = $v('#content'); if (sc) { sc.scrollTop = 0; sc.querySelectorAll('.sw,h2').forEach((e, i) => { if (i < 14) { e.classList.add('rise'); e.style.animationDelay = (i * 22) + 'ms'; } }); } }
+  const key = c.v === 'editor' ? 'e:' + c.id : c.v, main = view.querySelector('.dk-main');
+  if (key !== dkKey || c.v === 'settings') {
+    const anim = key !== dkKey; dkKey = key;
+    main.innerHTML = c.v === 'editor' ? vEditor(c.id) : c.v === 'settings' ? vSettings() : dkEmpty();
+    if (anim) { main.classList.remove('dk-in'); void main.offsetWidth; main.classList.add('dk-in'); }
+    if (c.v === 'editor') { setupEditor(c.focus, false); editing(false); c.focus = false; }
+  } else if (ed && edNote && document.activeElement !== ed && ed.innerHTML !== edNote.html) { ed.innerHTML = edNote.html || ''; normalize(); }
+}
+if (DESK) {
+  stack.push({ v: 'list', id: 'notes' });
+  window.onBack = function () {
+    if (ov.classList.contains('show')) { closeOverlay(); return true; }
+    if (selMode) { A.endSel(); return true; }
+    const fb = $v('#findbar'); if (fb && fb.classList.contains('on')) { closeFind(); return true; }
+    if (query) { query = ''; dkRender(); return true; }
+    return true;
+  };
+  document.addEventListener('keydown', e => {
+    if (!e.ctrlKey || ov.classList.contains('show')) return;
+    const k = e.key.toLowerCase();
+    if (k === 'n') { e.preventDefault(); newNote(); }
+    if (k === 'f') { e.preventDefault(); if (ed && cur().v === 'editor') openFind(); else { const q = $v('#q'); if (q) q.focus(); } }
+  });
+}
 
 render();

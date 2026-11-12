@@ -377,3 +377,153 @@ h2{font-size:23px;font-weight:700;margin:30px 0 14px}
 .seg2 button{font-size:16px}
 .seg2 button[data-id="mono"]{font-size:14px!important}
 .mathchip{bottom:calc(120px + var(--sb))}
+
+/* ===== desktop (3 colonnes) ===== */
+html.desk{--side:#0e0e10;--list:#08080a;--dl:rgba(255,255,255,.07)}
+html.desk,html.desk *{cursor:default}
+.desk input,.desk #ed,.desk #ed *{cursor:text}
+.desk .view{will-change:auto;backface-visibility:visible}
+.desk .view.dk{display:grid;grid-template-columns:248px 340px minmax(0,1fr);background:#000}
+.desk .dk-pane{position:relative;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.desk .dk-side{background:var(--side);border-right:1px solid var(--dl)}
+.desk .dk-list{background:var(--list);border-right:1px solid var(--dl)}
+.desk .dk-main{background:#000}
+.desk .dk-hd,.desk .edhdr,.desk .dk-main .hdr{-webkit-app-region:drag}
+.desk button,.desk input,.desk .search,.desk .pillb,.desk .winctl,.desk [data-a]{-webkit-app-region:no-drag}
+.desk .dk-hd{flex:none;height:58px;display:flex;align-items:center;gap:8px;padding:0 12px 0 18px}
+.desk .dk-brand{font-size:15px;font-weight:600;color:var(--sub);letter-spacing:.02em}
+.desk .dkb{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gold);flex:none;transition:background .2s,transform .35s var(--bounce)}
+.desk .dkb svg{width:21px;height:21px}
+.desk .dkb:hover{background:rgba(255,255,255,.08)}
+.desk .dkb.pr{transform:scale(.88);background:rgba(255,255,255,.14)}
+.desk .dkb.gold{background:var(--gold);color:#000}
+.desk .scroll{padding:0 10px 24px}
+.desk .scroll::-webkit-scrollbar{display:block;width:8px}
+.desk .scroll::-webkit-scrollbar-thumb{background:transparent;border-radius:4px}
+.desk .scroll:hover::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14)}
+.desk .dk-sec{font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;padding:6px 10px 8px}
+.desk .dk-row{display:flex;align-items:center;gap:10px;height:38px;padding:0 8px 0 10px;border-radius:10px;font-size:14.5px;margin-bottom:2px;transition:background .18s}
+.desk .dk-row:hover{background:rgba(255,255,255,.06)}
+.desk .dk-row.on{background:rgba(227,179,65,.16)}
+.desk .dk-row.pr{background:rgba(255,255,255,.1)}
+.desk .dk-ic{display:flex;width:22px;justify-content:center;flex:none}
+.desk .dk-nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.desk .dk-n{color:var(--sub);font-size:13px;font-variant-numeric:tabular-nums}
+.desk .dk-more{width:24px;height:24px;border-radius:6px;display:none;align-items:center;justify-content:center;color:var(--sub)}
+.desk .dk-more svg{width:16px;height:16px}
+.desk .dk-row:hover .dk-more{display:flex}
+.desk .dk-row:hover .dk-more+.dk-n{display:none}
+.desk .dk-more:hover{background:rgba(255,255,255,.1);color:#fff}
+.desk .dk-sep{height:1px;background:var(--dl);margin:10px 8px}
+.desk .dk-lt{flex:1;min-width:0}
+.desk .dk-h{font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.02em}
+.desk .dk-c{font-size:12.5px;color:var(--sub);margin-top:1px}
+.desk .dk-search{padding:0 12px 10px;flex:none}
+.desk .dk-search .search{height:34px;border-radius:10px;padding:0 10px;gap:8px;background:rgba(255,255,255,.06);box-shadow:none}
+.desk .dk-search .search svg{width:16px;height:16px;color:var(--sub)}
+.desk .dk-search .search input{font-size:14px}
+.desk .dk-search .x svg{width:16px;height:16px}
+.desk .dk-note{color:var(--sub);font-size:12.5px;padding:4px 10px 8px}
+.desk .dk-list h2{font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin:14px 10px 6px}
+.desk .dk-list .pinh svg{width:12px;height:12px}
+.desk .sw{margin-bottom:2px}
+.desk .ncard{border-radius:12px;padding:10px 12px;gap:10px;background:transparent;margin-bottom:2px}
+.desk .ncard:hover{background:rgba(255,255,255,.05)}
+.desk .ncard.on{background:#e3b341;color:#1c1c1e}
+.desk .ncard.on .n2,.desk .ncard.on .n3,.desk .ncard.on .lk{color:rgba(0,0,0,.6)}
+.desk .ncard.pr{transform:scale(.98);background:rgba(255,255,255,.1)!important}
+.desk .ncard.on.pr{background:#d6a733!important}
+.desk .nt{font-size:14.5px}
+.desk .n2,.desk .n3{font-size:13px;margin-top:2px}
+.desk .n3 svg{width:14px;height:14px}
+.desk .thumb{width:40px;height:40px;border-radius:8px}
+.desk .swb{width:40px;height:40px}
+.desk .swb svg{width:20px;height:20px}
+.desk .sel{width:20px;height:20px;margin-left:0}
+.desk .empty{margin-top:60px;font-size:14px}
+.desk .dk-list .bottom{position:absolute;padding:20px 14px 14px}
+.desk .selbar .pill{height:36px;font-size:14px;padding:0 16px}
+.desk .dk-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#48484a;font-size:15px;padding-bottom:60px}
+.desk .dk-empty .pill{height:38px;font-size:15px;color:var(--gold)}
+.desk .dk-in{animation:dkin .4s var(--spring) both}
+@keyframes dkin{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:none}}
+.desk .winctl{position:absolute;top:12px;right:12px;z-index:30;display:flex;height:34px;border-radius:17px;overflow:hidden;
+  background:rgba(44,44,46,.82);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 0 0 .5px rgba(255,255,255,.08),0 4px 14px rgba(0,0,0,.35)}
+.desk .winctl button{width:42px;height:34px;display:flex;align-items:center;justify-content:center;color:#d1d1d6;transition:background .15s,color .15s}
+.desk .winctl button:hover{background:rgba(255,255,255,.1);color:#fff}
+.desk .winctl .wx:hover{background:#e5484d;color:#fff}
+/* main pane: editor & settings */
+.desk .dk-main .hdr [data-a="back"]{display:none}
+.desk .dk-main .edhdr{padding:12px 160px 12px 20px;min-height:58px;background:linear-gradient(#000 55%,rgba(0,0,0,0))}
+.desk .dk-main .edhdr .cb,.desk .dk-main .edhdr .pillb{height:34px}
+.desk .dk-main .edhdr .cb{width:34px}
+.desk .dk-main .edhdr .pillb button{width:42px;height:34px}
+.desk .dk-main .edhdr svg{width:20px;height:20px}
+.desk .dk-main .edhdr .r{gap:8px;margin-left:auto}
+.desk #okBtn,.desk #viewBar{display:none!important}
+.desk .edwrap{padding:70px 40px 140px}
+.desk #ed{max-width:760px;margin:0 auto;font-size:16.5px;line-height:1.6;min-height:50vh}
+.desk #ed .h1{font-size:28px}
+.desk #ed .h2{font-size:21px}
+.desk #ed .h3{font-size:17.5px}
+.desk #ed .mono{font-size:14px}
+.desk #ed .ck{padding-left:30px}
+.desk #ed .ck .box{width:19px;height:19px;top:3px}
+.desk #ed .ck.on .box::after{left:5.5px;top:2px;width:4px;height:9px}
+.desk #fbar{display:block!important;position:absolute;left:50%;right:auto;bottom:16px;width:min(500px,calc(100% - 40px));transform:translateX(-50%);border-radius:22px;padding:4px 6px}
+.desk .frow{height:40px}
+.desk .frow button{height:40px;border-radius:12px;transition:background .15s}
+.desk .frow button:hover{background:rgba(255,255,255,.07)}
+.desk .frow svg{width:21px;height:21px}
+.desk .frow .aa{width:40px;height:40px;font-size:19px}
+.desk .seg button{height:30px;font-size:14px}
+.desk .seg-ind{height:30px}
+.desk .sg-h1{font-size:15.5px}.desk .sg-h2{font-size:13.5px}.desk .sg-h3{font-size:11px}.desk .sg-body{font-size:14.5px}
+.desk .seg2 button{font-size:14.5px}
+.desk .mathchip{position:absolute;bottom:80px;right:24px}
+.desk .findbar{padding:12px 160px 10px 20px}
+.desk .findbar .search{height:36px;border-radius:12px}
+.desk .findbar .search input{font-size:14px}
+.desk .findbar .cb.sm{width:34px;height:34px}
+.desk .findbar .pill.sm{height:34px;font-size:14px}
+.desk .dk-main .hdr:not(.edhdr){min-height:58px;padding:12px 20px}
+.desk .dk-main .set{padding:0 40px 40px}
+.desk .set>*{max-width:620px;margin-left:auto;margin-right:auto}
+.desk .set h1{font-size:30px;margin-top:4px}
+.desk .group{border-radius:16px;margin-bottom:22px}
+.desk .set .row{min-height:48px;font-size:15px}
+.desk .set .row .lbl{font-size:15px}
+.desk .set .row .cnt{font-size:14.5px}
+.desk .set .row.tall{min-height:58px}
+.desk .ssub{font-size:13px}
+.desk .sic{width:28px;height:28px;border-radius:7px}
+.desk .sic svg{width:17px;height:17px}
+.desk .set .row+.row::before{left:58px}
+.desk .row:hover{background:rgba(255,255,255,.04)}
+.desk .foot{font-size:12.5px;margin:-12px 0 24px}
+/* overlays */
+.desk .menu{width:260px;border-radius:16px;padding:6px}
+.desk .cxmenu{width:240px;min-width:0}
+.desk .mi{font-size:14.5px;padding:8px 12px;gap:12px;border-radius:10px}
+.desk .mi:hover{background:rgba(255,255,255,.08)}
+.desk .mi svg{width:20px;height:20px}
+.desk .mi .s{font-size:12.5px}
+.desk .msep{margin:5px 10px}
+.desk .mhead{font-size:12px;padding:6px 12px 2px}
+.desk .mrb{font-size:12.5px;padding:8px 0;border-radius:10px}
+.desk .mrb:hover{background:rgba(255,255,255,.08)}
+.desk .mrb svg{width:22px;height:22px}
+.desk .sheet{left:calc(50% - 190px);right:auto;width:380px;bottom:auto;top:24%}
+.desk .sheet .grp{border-radius:16px}
+.desk .sheet .sb{font-size:15.5px;padding:13px}
+.desk .sheet .sb:hover{background:rgba(255,255,255,.06)}
+.desk .sheet .ttl{font-size:13px;padding:13px}
+.desk .sheet{animation:dkpop .38s var(--bounce) both}
+.desk #overlay.closing .sheet{animation:popout .16s ease-in both}
+@keyframes dkpop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+.desk .dlg{width:320px}
+.desk .dlg .db button:hover{background:rgba(255,255,255,.06)}
+.desk .fsheet{left:calc(50% - 230px);right:auto;width:460px;top:8%;bottom:8%;border-radius:24px;animation:dkpop .4s var(--bounce) both}
+.desk .fsheet.closing{transform:scale(.94);opacity:0;transition:transform .25s,opacity .25s}
+.desk #app.behind{transform:scale(.97);border-radius:12px}
+.desk .toast{top:20px;font-size:14px;padding:10px 18px}
