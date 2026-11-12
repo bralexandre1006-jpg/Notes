@@ -430,6 +430,7 @@ function setupEditor(focus, animated) {
     if (e.target.classList.contains('box')) { const b = e.target.parentElement; b.classList.toggle('on'); if (db.settings.ck === 'auto') ckSort(b); schedule(); }
   });
   document.addEventListener('selectionchange', keepRange);
+  $v('#edwrap').addEventListener('pointerdown', () => { const fb = $v('#fbar'); if (fb && fb.classList.contains('open')) fb.classList.remove('open'); });
   ['#fbar', '#viewBar'].forEach(i => $v(i).addEventListener('mousedown', e => e.preventDefault()));
   ['#okBtn', '#undoBtn'].forEach(i => $v(i).addEventListener('mousedown', e => e.preventDefault()));
   if (focus) {
@@ -527,7 +528,7 @@ function normalize() {
     newCk = false;
   }
   if (newLine) {
-    const b = curBlock(); if (b && b.classList) b.classList.remove('h1', 'h2', 'h3');
+    const b = curBlock(); if (b && b.classList) b.classList.remove('h1', 'h2', 'h3', 'ac');
     newLine = false; syncBar();
   }
 }
@@ -549,7 +550,7 @@ function textBeforeCaret(block) {
 }
 function onKey(e) {
   const b = curBlock();
-  if (e.key === 'Enter' && b && b.classList && /\bh[123]\b/.test(b.className)) newLine = true;
+  if (e.key === 'Enter' && b && b.classList && /\b(h[123]|ac)\b/.test(b.className)) newLine = true;
   if (!b || !b.classList || !b.classList.contains('ck')) return;
   if (e.key === 'Enter') {
     if (b.textContent.trim() === '') { e.preventDefault(); uncheck(b); }
