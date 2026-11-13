@@ -551,3 +551,15 @@ html.desk,html.desk *{cursor:default}
 .desk .mi.dis{opacity:.35;pointer-events:none}
 .desk .mi .k{margin-left:auto;padding-left:18px;color:var(--sub);font-size:12.5px}
 .desk .mi.sug .t{font-weight:600;color:var(--gold)}
+.desk .dk-list .n2,.desk .dk-list .n3,.desk .dk-list .thumb{display:none}
+.desk .dk-list .sw{margin-bottom:8px}
+.desk .dk-list .ncard{padding:13px 16px;border-radius:16px;
+  background:linear-gradient(160deg,rgba(78,78,82,.5),rgba(46,46,49,.55) 45%,rgba(36,36,38,.6));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 .5px rgba(255,255,255,.1),0 4px 14px rgba(0,0,0,.35);
+  transition:background .25s,box-shadow .25s,transform .35s var(--bounce)}
+.desk .dk-list .ncard:hover{background:linear-gradient(160deg,rgba(92,92,96,.6),rgba(56,56,60,.62) 45%,rgba(44,44,46,.66))}
+.desk .dk-list .ncard.on{background:linear-gradient(160deg,#f3cd62,#e3b341 50%,#d6a32c);color:#1c1c1e;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 0 0 .5px rgba(255,255,255,.3),0 6px 18px rgba(227,179,65,.25)}
+.desk .dk-list .ncard.pr{transform:scale(.97);background:linear-gradient(160deg,rgba(100,100,104,.7),rgba(60,60,64,.7))!important}
+.desk .dk-list .ncard.on.pr{background:linear-gradient(160deg,#e6bf52,#d6a32c)!important}
+.desk .dk-list .nt{font-size:15px}
