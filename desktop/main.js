@@ -42,6 +42,9 @@ function create() {
   win.webContents.on('will-navigate', (e, url) => { if (!url.startsWith('file:')) { e.preventDefault(); shell.openExternal(url); } });
   win.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) shell.openExternal(url); return { action: 'deny' }; });
   win.webContents.session.setSpellCheckerLanguages(['fr']);
+  win.webContents.on('context-menu', (e, p) => {
+    win.webContents.send('ctx', { x: p.x, y: p.y, word: p.misspelledWord || '', sug: (p.dictionarySuggestions || []).slice(0, 5), editable: p.isEditable, sel: !!p.selectionText, f: p.editFlags });
+  });
   win.loadFile(path.join(__dirname, 'www', 'index.html'));
 }
 
@@ -57,6 +60,17 @@ ipcMain.on('win', (e, a) => {
   if (a === 'min') win.minimize();
   if (a === 'max') win.isMaximized() ? win.unmaximize() : win.maximize();
   if (a === 'close') win.close();
+});
+
+ipcMain.on('ctx', (e, a, w) => {
+  if (!win) return;
+  const wc = win.webContents;
+  if (a === 'cut') wc.cut();
+  if (a === 'copy') wc.copy();
+  if (a === 'paste') wc.paste();
+  if (a === 'selectAll') wc.selectAll();
+  if (a === 'fix' && w) wc.replaceMisspelling(w);
+  if (a === 'learn' && w) wc.session.addWordToSpellCheckerDictionary(w);
 });
 
 Menu.setApplicationMenu(null);

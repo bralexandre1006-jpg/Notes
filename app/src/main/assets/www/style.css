@@ -547,3 +547,7 @@ html.desk,html.desk *{cursor:default}
 #ed .ck.ac{text-align:left}
 .seg2 #acBtn{display:flex;align-items:center;justify-content:center}
 .seg2 #acBtn.on{background:#636366}
+.desk .ctxm{width:auto;min-width:230px;max-width:300px;transform-origin:top left;animation:pop .3s var(--bounce) both}
+.desk .mi.dis{opacity:.35;pointer-events:none}
+.desk .mi .k{margin-left:auto;padding-left:18px;color:var(--sub);font-size:12.5px}
+.desk .mi.sug .t{font-weight:600;color:var(--gold)}

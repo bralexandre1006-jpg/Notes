@@ -412,8 +412,7 @@ function vEditor(id) {
         <div class="seg segs"><span class="seg-ind"></span>${[['h1', 'Titre'], ['h2', 'Sous-titre'], ['h3', 'Titre secondaire'], ['', 'Corps']].map(([k, l]) => `<button class="sg sg-${k || 'body'}" data-a="seg" data-id="${k}">${l}</button>`).join('')}</div>
         <div class="seg seg2"><button data-a="inl" data-id="bold"><b>B</b></button><button data-a="inl" data-id="italic"><i>I</i></button><button data-a="inl" data-id="underline"><u>U</u></button><button data-a="inl" data-id="strikeThrough"><s>S</s></button><button data-a="seg" data-id="mono" style="font-family:monospace;font-size:17px">Mono</button><button data-a="align" id="acBtn">${sv('<path d="M4 6h16M7 10h10M4 14h16M7 18h10"/>', 22, 2.2)}</button></div>
       </div></div>
-      <div class="frow"><button class="aa" id="aaBtn" data-a="tFormat">Aa</button><button id="ckBtn" data-a="tChecklist">${I.checklist}</button><button id="tbBtn" data-a="tTable">${I.table}</button>
-      <button data-a="tAttach">${I.clip}</button><button data-a="tList">${I.list}</button></div></div>`;
+      <div class="frow"><button class="aa" id="aaBtn" data-a="tFormat">Aa</button><button id="ckBtn" data-a="tChecklist">${I.checklist}</button>      <button data-a="tAttach">${I.clip}</button><button data-a="tList">${I.list}</button></div></div>`;
 }
 
 function setupEditor(focus, animated) {
@@ -881,7 +880,7 @@ async function contextMenu(card) {
   if (i === 3) shareNote(n);
   if (i === 4) { if (await confirmDelete()) { trashNotes([id]); collapseCard(id, () => render()); } }
 }
-ov.addEventListener('mousedown', e => { if (ed && document.activeElement === ed && !e.target.closest('input')) e.preventDefault(); });
+ov.addEventListener('mousedown', e => { const a = document.activeElement; if (a && ((ed && a === ed) || (DESK && a.tagName === 'INPUT' && !ov.contains(a))) && !e.target.closest('input')) e.preventDefault(); });
 
 function menu(anchor, items) {
   return new Promise(res => {
@@ -1564,6 +1563,33 @@ function dkRender() {
     if (c.v === 'editor') { setupEditor(c.focus, false); editing(false); c.focus = false; }
   } else if (ed && edNote && document.activeElement !== ed && ed.innerHTML !== edNote.html) { ed.innerHTML = edNote.html || ''; normalize(); }
 }
+function ctxMenu(x, y, items) {
+  const html = `<div class="menu ctxm" style="left:${x}px;top:${y}px">` + items.map((it, i) => it.sep ? '<div class="msep"></div>'
+    : `<div class="mi${it.dis ? ' dis' : ''}${it.sug ? ' sug' : ''}" data-i="${i}">${it.icon ? sv(it.icon, 20, 1.7) : ''}<span class="t">${esc(it.label)}</span>${it.k ? `<span class="k">${it.k}</span>` : ''}</div>`).join('') + '</div>';
+  openOverlay(html);
+  const m = ov.querySelector('.ctxm'), r = m.getBoundingClientRect();
+  if (r.right > innerWidth - 8) m.style.left = Math.max(8, x - r.width) + 'px';
+  if (r.bottom > innerHeight - 8) m.style.top = Math.max(8, y - r.height) + 'px';
+  ovDone = null;
+  m.querySelectorAll('.mi:not(.dis)').forEach(el => el.addEventListener('click', () => {
+    const it = items[+el.dataset.i]; closeOverlay(null); Desktop.ctx(it.a, it.w);
+  }));
+}
+if (DESK && Desktop.onCtx) Desktop.onCtx(p => {
+  if (ov.classList.contains('show') || (!p.editable && !p.sel)) return;
+  const it = [];
+  if (p.word) {
+    p.sug.forEach(s => it.push({ label: s, a: 'fix', w: s, sug: true }));
+    if (!p.sug.length) it.push({ label: 'Aucune suggestion', dis: true });
+    it.push({ label: 'Ajouter au dictionnaire', a: 'learn', w: p.word, icon: '<path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3M12 7v6M9 10h6"/>' });
+    it.push({ sep: true });
+  }
+  if (p.editable) it.push({ label: 'Couper', a: 'cut', k: 'Ctrl+X', dis: !p.f.canCut, icon: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.1 15.9M14.5 14.5L20 20M8.1 8.1L12 12"/>' });
+  it.push({ label: 'Copier', a: 'copy', k: 'Ctrl+C', dis: !p.f.canCopy, icon: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>' });
+  if (p.editable) it.push({ label: 'Coller', a: 'paste', k: 'Ctrl+V', dis: !p.f.canPaste, icon: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.8h6V4M9 10h6M9 14h4"/>' });
+  if (p.editable) { it.push({ sep: true }); it.push({ label: 'Tout sélectionner', a: 'selectAll', k: 'Ctrl+A', icon: '<rect x="4" y="4" width="16" height="16" rx="2.5" stroke-dasharray="3 2.6"/>' }); }
+  ctxMenu(p.x, p.y, it);
+});
 if (DESK) {
   stack.push({ v: 'list', id: 'notes' });
   window.onBack = function () {
