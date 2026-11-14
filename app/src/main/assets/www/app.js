@@ -426,7 +426,25 @@ function setupEditor(focus, animated) {
   ed.addEventListener('keydown', onKey);
   ed.addEventListener('mousedown', e => { if (e.target.classList.contains('box')) e.preventDefault(); });
   ed.addEventListener('click', e => {
-    if (e.target.classList.contains('box')) { const b = e.target.parentElement; b.classList.toggle('on'); if (db.settings.ck === 'auto') ckSort(b); schedule(); }
+    if (e.target.classList.contains('box')) {
+      const b = e.target.parentElement;
+      if (b.classList.contains('ckout')) return;
+      if (b.classList.contains('on')) { b.classList.remove('on'); if (db.settings.ck === 'auto') ckSort(b); schedule(); return; }
+      b.classList.add('on'); haptic();
+      setTimeout(() => {
+        if (!b.isConnected) return;
+        b.style.height = b.offsetHeight + 'px'; void b.offsetHeight;
+        b.classList.add('ckout'); b.style.height = '0px';
+        setTimeout(() => {
+          if (!b.isConnected || !ed) return;
+          const near = b.previousElementSibling || b.nextElementSibling, s = getSelection();
+          const had = s.rangeCount && b.contains(s.anchorNode);
+          b.remove(); normalize();
+          if (had && near) caretEnd(near);
+          schedule();
+        }, 320);
+      }, 220);
+    }
   });
   document.addEventListener('selectionchange', keepRange);
   $v('#edwrap').addEventListener('pointerdown', () => { const fb = $v('#fbar'); if (fb && fb.classList.contains('open')) fb.classList.remove('open'); });

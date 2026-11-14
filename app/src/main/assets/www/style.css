@@ -563,3 +563,5 @@ html.desk,html.desk *{cursor:default}
 .desk .dk-list .ncard.pr{transform:scale(.97);background:linear-gradient(160deg,rgba(100,100,104,.7),rgba(60,60,64,.7))!important}
 .desk .dk-list .ncard.on.pr{background:linear-gradient(160deg,#e6bf52,#d6a32c)!important}
 .desk .dk-list .nt{font-size:15px}
+#ed .ck.ckout{overflow:hidden;opacity:0;transform:translateX(26px);min-height:0;
+  transition:height .32s cubic-bezier(.22,1,.36,1),opacity .22s ease-out,transform .32s cubic-bezier(.22,1,.36,1)}
