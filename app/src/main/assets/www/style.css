@@ -126,7 +126,7 @@ h2{font-size:23px;font-weight:700;margin:30px 0 14px}
 .empty{color:var(--sub);text-align:center;margin-top:80px;font-size:17px}
 
 /* ---------- bottom ---------- */
-.bottom{position:fixed;left:0;right:0;bottom:0;padding:0 28px calc(22px + var(--sb));display:flex;gap:14px;align-items:center;
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:4;padding:0 28px calc(22px + var(--sb));display:flex;gap:14px;align-items:center;
   background:linear-gradient(to top,rgba(0,0,0,1) 40%,rgba(0,0,0,0));padding-top:30px;pointer-events:none}
 .bottom>*{pointer-events:auto}
 .search{flex:1;min-width:0;height:48px;border-radius:24px;background:var(--card);display:flex;align-items:center;gap:10px;padding:0 16px;
@@ -565,3 +565,10 @@ html.desk,html.desk *{cursor:default}
 .desk .dk-list .nt{font-size:15px}
 #ed .ck.ckout{overflow:hidden;opacity:0;transform:translateX(26px);min-height:0;
   transition:height .32s cubic-bezier(.22,1,.36,1),opacity .22s ease-out,transform .32s cubic-bezier(.22,1,.36,1)}
+html:not(.desk) .ncard .n2,html:not(.desk) .ncard .n3,html:not(.desk) .ncard .thumb{display:none}
+html:not(.desk) .ncard{padding:19px 24px;border-radius:26px;
+  background:linear-gradient(160deg,rgba(78,78,82,.55),rgba(46,46,49,.6) 45%,rgba(36,36,38,.65));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 .5px rgba(255,255,255,.1),0 4px 14px rgba(0,0,0,.35)}
+html:not(.desk) .ncard.pr{background:linear-gradient(160deg,rgba(100,100,104,.75),rgba(60,60,64,.75))!important}
+html:not(.desk) .nt{font-size:19px}
+html:not(.desk) .sw{margin-bottom:10px}
